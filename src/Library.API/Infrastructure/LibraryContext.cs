@@ -2,6 +2,7 @@ using Library.API.Models;
 using Library.API.Infrastructure.EntityConfigurations;
 using Library.API.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Library.API.Infrastructure.Seed;
 
 namespace Library.API.Infrastructure;
 
@@ -10,13 +11,12 @@ public class LibraryContext : DbContext
   private readonly StreamWriter logStream = new StreamWriter(
     $"{Directory.GetCurrentDirectory()}/Infrastructure/Logs/LibraryContextLogs.txt"
   );
+  
   public DbSet<Book> Books { get; set; } = null!;
   public DbSet<TakenBook> TakenBooks { get; set; } = null!;
 
   public LibraryContext()
   {
-    Database.EnsureDeleted();
-    Database.EnsureCreated();
   }
 
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -41,6 +41,8 @@ public class LibraryContext : DbContext
     modelBuilder.ApplyConfiguration(new TakenBookTypeConfiguration());
     modelBuilder.ApplyConfiguration(new AuthorTypeConfiguration());
     modelBuilder.ApplyConfiguration(new GenreTypeConfiguration());
+
+    DatabaseSeedFactory.Create().CreateDbInitializer().Seed(modelBuilder);
   }
 
   public override void Dispose()

@@ -3,6 +3,7 @@ using System;
 using Library.API.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library.API.Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    partial class LibraryContextModelSnapshot : ModelSnapshot
+    [Migration("20231203103037_seedMigration")]
+    partial class seedMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,22 +60,13 @@ namespace Library.API.Infrastructure.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("varchar(255)")
-                        .UseCollation("utf8mb4_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("FirstName"), "utf8mb4");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("LastName")
-                        .HasColumnType("varchar(255)")
-                        .UseCollation("utf8mb4_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("LastName"), "utf8mb4");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("MiddleName")
-                        .HasColumnType("varchar(255)")
-                        .UseCollation("utf8mb4_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("MiddleName"), "utf8mb4");
+                        .HasColumnType("nvarchar(255)");
 
                     b.HasKey("Id");
 
@@ -117,10 +111,7 @@ namespace Library.API.Infrastructure.Migrations
 
                     b.Property<string>("ISBN")
                         .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .UseCollation("utf8mb4_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("ISBN"), "utf8mb4");
+                        .HasColumnType("varchar(20)");
 
                     b.HasKey("Id");
 
@@ -135,10 +126,7 @@ namespace Library.API.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(200)")
-                        .UseCollation("utf8mb4_general_ci");
-
-                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Name"), "utf8mb4");
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
