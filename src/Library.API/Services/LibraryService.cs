@@ -9,6 +9,14 @@ namespace Library.API.Services;
 public class LibraryService : ILibraryService
 {
   private LibraryContext context = new LibraryContext();
+  private List<Genre> libraryGenres;
+  private List<Author> libraryAuthors;
+
+  public LibraryService()
+  {
+    libraryGenres = context.Genres.ToList();
+    libraryAuthors = context.Authors.ToList();
+  }
 
   public IList<BookInstance> GetAllBooks()
   {
@@ -71,10 +79,15 @@ public class LibraryService : ILibraryService
     return result;
   }
   
+  
   public async void AddBookEdition(BookEdition bookInfo)
   {
     try
     {
+      var genres = libraryGenres.Where(g => bookInfo.Genres.Contains(g)).ToList();
+      bookInfo.Genres = genres;
+      var authors = libraryAuthors.Where(a => bookInfo.Authors.Contains(a)).ToList();
+      bookInfo.Authors = authors;
       await context.BookEditions.AddAsync(bookInfo);
       await context.SaveChangesAsync();
     }

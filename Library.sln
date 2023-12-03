@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C3E47C66-9AB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.API", "src\Library.API\Library.API.csproj", "{7BDB391E-8B17-4097-9B7A-EEF06CA85217}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A579460F-7E3F-41E0-8DE8-FC96A5939E5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.API.Tests", "test\Library.API.Tests\Library.API.Tests.csproj", "{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{7BDB391E-8B17-4097-9B7A-EEF06CA85217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BDB391E-8B17-4097-9B7A-EEF06CA85217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BDB391E-8B17-4097-9B7A-EEF06CA85217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7BDB391E-8B17-4097-9B7A-EEF06CA85217} = {C3E47C66-9AB7-46DF-BC33-6FA3BB963AF1}
+		{F2F9D355-E0D8-4A2B-BD26-904A9BDB089B} = {A579460F-7E3F-41E0-8DE8-FC96A5939E5E}
 	EndGlobalSection
 EndGlobal
