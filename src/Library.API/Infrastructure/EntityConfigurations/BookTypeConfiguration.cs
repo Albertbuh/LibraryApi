@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Library.API.Infrastructure.EntityConfigurations;
 
-public class BookTypeConfiguration : IEntityTypeConfiguration<Book>
+public class BookTypeConfiguration : IEntityTypeConfiguration<BookEdition>
 {
-  public void Configure(EntityTypeBuilder<Book> builder)
+  public void Configure(EntityTypeBuilder<BookEdition> builder)
   {
     builder.ToTable("Books");
 
@@ -16,5 +16,12 @@ public class BookTypeConfiguration : IEntityTypeConfiguration<Book>
       .HasCharSet("utf8mb4")
       .UseCollation("utf8mb4_general_ci")
       .IsRequired();
+
+    builder
+      .Property(b => b.Title)
+      .HasColumnType("varchar(255)")
+      .HasCharSet("utf8mb4")
+      .UseCollation("utf8mb4_general_ci")
+      .IsRequired();  
   }
 }

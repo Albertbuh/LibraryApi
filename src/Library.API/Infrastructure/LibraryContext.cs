@@ -12,8 +12,8 @@ public class LibraryContext : DbContext
     $"{Directory.GetCurrentDirectory()}/Infrastructure/Logs/LibraryContextLogs.txt"
   );
   
-  public DbSet<Book> Books { get; set; } = null!;
-  public DbSet<TakenBook> TakenBooks { get; set; } = null!;
+  public DbSet<BookEdition> BookEditions { get; set; } = null!;
+  public DbSet<BookInstance> BookInstances { get; set; } = null!;
 
   public LibraryContext()
   {

@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Library.API.Models;
 namespace Library.API.Infrastructure.EntityConfigurations;
 
-public class TakenBookTypeConfiguration : IEntityTypeConfiguration<TakenBook>
+public class TakenBookTypeConfiguration : IEntityTypeConfiguration<BookInstance>
 {
-  public void Configure(EntityTypeBuilder<TakenBook> builder)
+  public void Configure(EntityTypeBuilder<BookInstance> builder)
   {
     builder.ToTable("TakenBooks");
   }
