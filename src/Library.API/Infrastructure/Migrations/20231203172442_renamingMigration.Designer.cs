@@ -3,6 +3,7 @@ using System;
 using Library.API.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library.API.Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    partial class LibraryContextModelSnapshot : ModelSnapshot
+    [Migration("20231203172442_renamingMigration")]
+    partial class renamingMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,8 +52,6 @@ namespace Library.API.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("MiddleName"), "utf8mb4");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FirstName");
 
                     b.ToTable("authors", (string)null);
 
@@ -111,9 +112,6 @@ namespace Library.API.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ISBN")
-                        .IsUnique();
-
                     b.ToTable("book_editions", (string)null);
                 });
 
@@ -152,8 +150,11 @@ namespace Library.API.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("g_name");
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("g_name")
+                        .UseCollation("utf8mb4_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Name"), "utf8mb4");
 
                     b.HasKey("Id");
 

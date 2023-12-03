@@ -8,8 +8,17 @@ ILogger logger = loggerFactory.CreateLogger<Program>();
 try {
   using(LibraryContext db = new LibraryContext())
   {
-    var books = db.Books.ToList();
-    logger.LogInformation($"Num of books in DB: {books.Count()}");
+    var books = db.Genres.ToList();
+    foreach (var item in books)
+    {
+      logger.LogInformation($"Genre: {item.Name}");
+    }
+
+    var authors = db.Authors.ToList();
+    foreach(var item in authors)
+    {
+      logger.LogInformation($"Author: {item.ToString()}");
+    }
   }
 }
 catch(MySqlConnector.MySqlException e)

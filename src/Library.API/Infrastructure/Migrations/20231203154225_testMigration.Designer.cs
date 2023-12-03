@@ -3,6 +3,7 @@ using System;
 using Library.API.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,49 +11,75 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library.API.Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    partial class LibraryContextModelSnapshot : ModelSnapshot
+    [Migration("20231203154225_testMigration")]
+    partial class testMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("AuthorBookEdition", b =>
+                {
+                    b.Property<int>("AuthorsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BooksId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AuthorsId", "BooksId");
+
+                    b.HasIndex("BooksId");
+
+                    b.ToTable("AuthorBookEdition");
+                });
+
+            modelBuilder.Entity("BookEditionGenre", b =>
+                {
+                    b.Property<int>("BooksId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenresId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BooksId", "GenresId");
+
+                    b.HasIndex("GenresId");
+
+                    b.ToTable("BookEditionGenre");
+                });
+
             modelBuilder.Entity("Library.API.Models.Author", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("a_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("a_firstname")
                         .UseCollation("utf8mb4_general_ci");
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("FirstName"), "utf8mb4");
 
                     b.Property<string>("LastName")
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("a_lastname")
                         .UseCollation("utf8mb4_general_ci");
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("LastName"), "utf8mb4");
 
                     b.Property<string>("MiddleName")
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("a_middlename")
                         .UseCollation("utf8mb4_general_ci");
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("MiddleName"), "utf8mb4");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FirstName");
-
-                    b.ToTable("authors", (string)null);
+                    b.ToTable("Authors", (string)null);
 
                     b.HasData(
                         new
@@ -86,17 +113,14 @@ namespace Library.API.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("be_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
-                        .HasColumnType("longtext")
-                        .HasColumnName("be_description");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
                         .HasColumnType("varchar(20)")
-                        .HasColumnName("be_isbn")
                         .UseCollation("utf8mb4_general_ci");
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("ISBN"), "utf8mb4");
@@ -104,60 +128,53 @@ namespace Library.API.Infrastructure.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
-                        .HasColumnName("be_title")
                         .UseCollation("utf8mb4_general_ci");
 
                     MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Title"), "utf8mb4");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ISBN")
-                        .IsUnique();
-
-                    b.ToTable("book_editions", (string)null);
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("Library.API.Models.BookInstance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("bi_id");
+                        .HasColumnType("int");
 
-                    b.Property<int>("BookEditionId")
-                        .HasColumnType("int")
-                        .HasColumnName("bi_book_edition_id");
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
 
                     b.Property<DateOnly?>("DateOfReturn")
-                        .HasColumnType("date")
-                        .HasColumnName("bi_date_of_return");
+                        .HasColumnType("date");
 
                     b.Property<DateOnly?>("DateOfTaken")
-                        .HasColumnType("date")
-                        .HasColumnName("bi_date_of_taken");
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookEditionId");
+                    b.HasIndex("BookId");
 
-                    b.ToTable("book_instances", (string)null);
+                    b.ToTable("TakenBooks", (string)null);
                 });
 
             modelBuilder.Entity("Library.API.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("g_id");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("g_name");
+                        .HasColumnType("varchar(200)")
+                        .UseCollation("utf8mb4_general_ci");
+
+                    MySqlPropertyBuilderExtensions.HasCharSet(b.Property<string>("Name"), "utf8mb4");
 
                     b.HasKey("Id");
 
-                    b.ToTable("genres", (string)null);
+                    b.ToTable("Genres", (string)null);
 
                     b.HasData(
                         new
@@ -182,75 +199,45 @@ namespace Library.API.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("m2m_editions_authors", b =>
+            modelBuilder.Entity("AuthorBookEdition", b =>
                 {
-                    b.Property<int>("author_id")
-                        .HasColumnType("int");
+                    b.HasOne("Library.API.Models.Author", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<int>("edition_id")
-                        .HasColumnType("int");
-
-                    b.HasKey("author_id", "edition_id");
-
-                    b.HasIndex("edition_id");
-
-                    b.ToTable("m2m_editions_authors");
+                    b.HasOne("Library.API.Models.BookEdition", null)
+                        .WithMany()
+                        .HasForeignKey("BooksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("m2m_editions_genres", b =>
+            modelBuilder.Entity("BookEditionGenre", b =>
                 {
-                    b.Property<int>("genre_id")
-                        .HasColumnType("int");
+                    b.HasOne("Library.API.Models.BookEdition", null)
+                        .WithMany()
+                        .HasForeignKey("BooksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<int>("edition_id")
-                        .HasColumnType("int");
-
-                    b.HasKey("genre_id", "edition_id");
-
-                    b.HasIndex("edition_id");
-
-                    b.ToTable("m2m_editions_genres");
+                    b.HasOne("Library.API.Models.Genre", null)
+                        .WithMany()
+                        .HasForeignKey("GenresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Library.API.Models.BookInstance", b =>
                 {
                     b.HasOne("Library.API.Models.BookEdition", "Book")
                         .WithMany()
-                        .HasForeignKey("BookEditionId")
+                        .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Book");
-                });
-
-            modelBuilder.Entity("m2m_editions_authors", b =>
-                {
-                    b.HasOne("Library.API.Models.Author", null)
-                        .WithMany()
-                        .HasForeignKey("author_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Library.API.Models.BookEdition", null)
-                        .WithMany()
-                        .HasForeignKey("edition_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("m2m_editions_genres", b =>
-                {
-                    b.HasOne("Library.API.Models.BookEdition", null)
-                        .WithMany()
-                        .HasForeignKey("edition_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Library.API.Models.Genre", null)
-                        .WithMany()
-                        .HasForeignKey("genre_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
