@@ -16,15 +16,9 @@ public class GenreTypeConfiguration : IEntityTypeConfiguration<Genre>
       .HasColumnName("g_name")
       .HasColumnType("nvarchar(200)")
       .IsRequired();
+
+    // builder.HasIndex(g => g.Name).IsUnique();
     
-    builder
-      .HasMany(g => g.BookEditions)
-      .WithMany(be => be.Genres)
-      .UsingEntity(
-        "m2m_editions_genres",
-        l => l.HasOne(typeof(BookEdition)).WithMany().HasForeignKey("edition_id"),
-        r => r.HasOne(typeof(Genre)).WithMany().HasForeignKey("genre_id"),
-        j => j.HasKey("genre_id", "edition_id")
-      );
+    
   }
 }

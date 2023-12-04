@@ -1,15 +1,14 @@
 using Library.API.Models;
-using Microsoft.EntityFrameworkCore;
+using Library.API.Infrastructure.Exceptions;
+namespace Library.API.Infrastructure;
 
-namespace Library.API.Infrastructure.Seed;
-
-public class LibraryDbInitializer : IDatabaseInitializer
+public class LibraryContextSeed
 {
   private Dictionary<string, Genre> genreDictionary = new Dictionary<string, Genre>();
   private Dictionary<int, Author> authorDictionary = new Dictionary<int, Author>();
   private List<BookEdition> bookEditions = new List<BookEdition>();
-
-  public LibraryDbInitializer()
+  
+  public LibraryContextSeed()
   {
     genreDictionary.Add("комедия", new Genre { Name = "комедия", Id = 1 });
     genreDictionary.Add("драма", new Genre { Name = "драма", Id = 2 });
@@ -114,11 +113,31 @@ public class LibraryDbInitializer : IDatabaseInitializer
     );
   }
 
-  public void Seed(ModelBuilder modelBuilder)
+  public async void SeedAsync(LibraryContext context)
   {
-    // modelBuilder.Entity<Genre>().HasData(genreDictionary.Values);
-    // modelBuilder.Entity<Author>().HasData(authorDictionary.Values);
-    // modelBuilder.Entity<BookEdition>().HasData(bookEditions);
+    try 
+    {
+      if(!context.Genres.Any())
+      {
+        await context.Genres.AddRangeAsync(genreDictionary.Values);
+      }
+
+      if(!context.Authors.Any())
+      {
+        await context.Authors.AddRangeAsync(authorDictionary.Values);
+      }
+
+      if(!context.BookEditions.Any())
+      {
+        await context.BookEditions.AddRangeAsync(bookEditions);
+      }
+
+      context.SaveChanges();
+    }
+    catch(Exception e)
+    {
+      throw new LibraryContextException("Error while seeding data to library context",e);
+    }
   }
 
 }

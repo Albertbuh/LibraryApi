@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Library.API.Infrastructure.Migrations
 {
     [DbContext(typeof(LibraryContext))]
-    [Migration("20231203175151_indexMigration")]
-    partial class indexMigration
+    [Migration("20231204124229_stableMigration")]
+    partial class stableMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,33 +56,6 @@ namespace Library.API.Infrastructure.Migrations
                     b.HasIndex("FirstName");
 
                     b.ToTable("authors", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            FirstName = "Пушкин",
-                            LastName = "Александр",
-                            MiddleName = "Сергеевич"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            FirstName = "Достоевский",
-                            LastName = "Фёдор"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            FirstName = "Кинг",
-                            LastName = "Стивен"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            FirstName = "Лермонтов",
-                            LastName = "Михаил"
-                        });
                 });
 
             modelBuilder.Entity("Library.API.Models.BookEdition", b =>
@@ -161,28 +134,6 @@ namespace Library.API.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("genres", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "комедия"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "драма"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "трагедия"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "ужасы"
-                        });
                 });
 
             modelBuilder.Entity("m2m_editions_authors", b =>

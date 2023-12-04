@@ -31,17 +31,7 @@ public class AuthorTypeConfiguration : IEntityTypeConfiguration<Author>
       .HasCharSet("utf8mb4")
       .UseCollation("utf8mb4_general_ci");
     
-    builder.HasMany(a => a.BookEditions)
-      .WithMany(be => be.Authors)
-      .UsingEntity(
-          "m2m_editions_authors",
-          l => l.HasOne(typeof(BookEdition)).WithMany().HasForeignKey("edition_id"),
-          r => r.HasOne(typeof(Author)).WithMany().HasForeignKey("author_id"),
-          j => j.HasKey("author_id", "edition_id")
-          );
-
+    
     builder.HasIndex(a => a.FirstName);
   }
-  
-    
 }
