@@ -32,23 +32,9 @@ public class Author
     bool result = false;
     if (obj is Author a)
     {
-      result = a.FirstName.Equals(this.FirstName);
-
-      if (this.MiddleName != null && a.MiddleName != null)
-        result &= this.MiddleName.Equals(a.MiddleName);
-      else if (
-        (this.MiddleName != null && a.MiddleName == null)
-        && (this.MiddleName == null && a.MiddleName != null)
-      )
-        result = false;
-
-      if (this.LastName != null && a.LastName != null)
-        result &= this.LastName.Equals(a.LastName);
-      else if (
-        (this.LastName != null && a.LastName == null)
-        && (this.LastName == null && a.LastName != null)
-      )
-        result = false;
+      result = a.FirstName == this.FirstName
+                && ((a.MiddleName == this.MiddleName) || (a.MiddleName == null && this.MiddleName == null))
+                && ((a.LastName == this.LastName) || (a.LastName == null && this.LastName == null));
     }
     return result;
   }

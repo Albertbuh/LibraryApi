@@ -7,8 +7,6 @@ ILogger logger = loggerFactory.CreateLogger<Program>();
 
 try {
   var service = new LibraryService();
-  var bookEdition = service.GetBookByISBN("978-5-04-111308-7");
-  System.Console.WriteLine(bookEdition.Genres.Count());
 }
 catch(MySqlConnector.MySqlException e)
 {
