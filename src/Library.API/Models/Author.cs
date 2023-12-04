@@ -33,8 +33,8 @@ public class Author
     if (obj is Author a)
     {
       result = a.FirstName == this.FirstName
-                && (a.MiddleName == this.MiddleName) || (a.MiddleName == null && this.MiddleName == null)
-                && (a.LastName == this.LastName) || (a.LastName == null && this.LastName == null);
+                && ((a.MiddleName == this.MiddleName) || (a.MiddleName == null && this.MiddleName == null))
+                && ((a.LastName == this.LastName) || (a.LastName == null && this.LastName == null));
     }
     return result;
   }
