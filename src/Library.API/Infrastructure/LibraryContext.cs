@@ -14,8 +14,8 @@ public class LibraryContext : DbContext
   
   public LibraryContext()
   {
-    Database.EnsureDeleted();
-    Database.EnsureCreated();
+    // Database.EnsureDeleted();
+    // Database.EnsureCreated();
   }
 
   
