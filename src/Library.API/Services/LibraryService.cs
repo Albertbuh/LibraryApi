@@ -2,103 +2,105 @@ using Library.API.Infrastructure;
 using Library.API.Infrastructure.Exceptions;
 using Library.API.Models;
 using Library.API.Services.Exceptions;
-// using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Library.API.Services;
 
 public class LibraryService : ILibraryService
 {
   private LibraryContext context = new LibraryContext();
-  private List<Genre> libraryGenres;
-  private List<Author> libraryAuthors;
 
   public LibraryService()
   {
-    libraryGenres = context.Genres.ToList();
-    libraryAuthors = context.Authors.ToList();
+    // var seeder = new LibraryContextSeed();
+    // seeder.SeedAsync(context);
   }
 
   public IList<BookInstance> GetAllBooks()
   {
     IList<BookInstance> bookList;
-    
-    try 
+
+    try
     {
-      bookList = context.BookInstances.ToList();
+      bookList = context.BookInstances
+                        .Include(bi => bi.Book.Genres)
+                        .Include(bi => bi.Book.Authors)
+                        .ToList();
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
-      throw new LibraryServiceException("Error while getting all books", e); 
+      throw new LibraryServiceException("Error while getting all books", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
-      throw new LibraryServiceException("Error while getting all books", e); 
+      throw new LibraryServiceException("Error while getting all books", e);
     }
-    
+
     return bookList;
   }
- 
-  public BookInstance GetBookById(int id)
+
+  public async Task<BookInstance?> GetBookById(int id)
   {
-    BookInstance result;
-    
+    BookInstance? result;
+
     try
     {
-      result = context.BookInstances.Single(b => b.Id == id);
+      result = await context.BookInstances.Include(bi => bi.Book).SingleOrDefaultAsync(b => b.Id == id);
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error in getting book by id -> {id}", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error in getting book by id -> {id}", e);
     }
 
     return result;
-  } 
-  
+  }
 
-  public BookEdition GetBookByISBN(string isbn)
+  public async Task<BookEdition?> GetBookByISBN(string isbn)
   {
-    BookEdition result;
+    BookEdition? result;
 
     try
     {
-      result = context.BookEditions.Single(be => be.ISBN == isbn);
+      result = await context.BookEditions
+                      .Include(be => be.Genres)
+                      .Include(be => be.Authors)
+                      .SingleOrDefaultAsync(be => be.ISBN == isbn);
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error in getting book by ISBN -> {isbn}", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error in getting book by ISBN -> {isbn}", e);
     }
 
     return result;
   }
-  
-  
+
   public async void AddBookEdition(BookEdition bookInfo)
   {
     try
     {
-      var genres = libraryGenres.Where(g => bookInfo.Genres.Contains(g)).ToList();
+      var genres = await context.Genres.Where(g => bookInfo.Genres.Contains(g)).ToListAsync();
       bookInfo.Genres = genres;
-      var authors = libraryAuthors.Where(a => bookInfo.Authors.Contains(a)).ToList();
+      var authors = await context.Authors.Where(a => bookInfo.Authors.Contains(a)).ToListAsync();
       bookInfo.Authors = authors;
       await context.BookEditions.AddAsync(bookInfo);
       await context.SaveChangesAsync();
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error while add new edition", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error while add new edition", e);
-    }  
+    }
   }
 
   public async void AddBookInstances(string isbn, int amount)
@@ -107,38 +109,38 @@ public class LibraryService : ILibraryService
     {
       var edition = context.BookEditions.Single(be => be.ISBN.Equals(isbn));
       var instancesList = new List<BookInstance>();
-      for(int i = 0; i < amount; i++)
+      for (int i = 0; i < amount; i++)
         instancesList.Add(new BookInstance(edition));
 
       await context.BookInstances.AddRangeAsync(instancesList);
       await context.SaveChangesAsync();
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error while add new instances", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error while add new instances", e);
     }
   }
-  
+
   public async void DeleteBookEdition(string isbn)
   {
     try
     {
-      var edition = context.BookEditions.SingleOrDefault(be => be.ISBN == isbn);    
-      if(edition != null)
+      var edition = context.BookEditions.SingleOrDefault(be => be.ISBN == isbn);
+      if (edition != null)
       {
         context.BookEditions.Remove(edition);
         await context.SaveChangesAsync();
       }
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error while delete edition: {isbn}", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error while delete edition: {isbn}", e);
     }
@@ -148,18 +150,18 @@ public class LibraryService : ILibraryService
   {
     try
     {
-      var instance = context.BookInstances.SingleOrDefault(be => be.Id == id);    
-      if(instance != null)
+      var instance = context.BookInstances.SingleOrDefault(be => be.Id == id);
+      if (instance != null)
       {
         context.BookInstances.Remove(instance);
         await context.SaveChangesAsync();
       }
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error while delete edition: {id}", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error while delete edition: {id}", e);
     }
@@ -170,29 +172,47 @@ public class LibraryService : ILibraryService
     try
     {
       var edition = context.BookEditions.SingleOrDefault(be => be.ISBN.Equals(isbn));
-      if(edition != null)
+      if (edition != null)
       {
+        // var entry = context.Entry(edition);
+        // entry.CurrentValues.SetValues(newInfo);
         edition.ISBN = newInfo.ISBN;
         edition.Genres = newInfo.Genres;
         edition.Authors = newInfo.Authors;
         edition.Description = newInfo.Description;
         edition.Title = newInfo.Title;
-        
+
         await context.SaveChangesAsync();
       }
     }
-    catch(LibraryContextException e)
+    catch (LibraryContextException e)
     {
       throw new LibraryServiceException($"Error in book updating", e);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       throw new LibraryServiceException($"Error in book updating", e);
     }
   }
 
-  public void UpdateBookInstance(int id, BookInstance newInfo)
+  public async void UpdateBookInstance(int id, BookInstance newInfo)
   {
-    throw new NotImplementedException();
+    try
+    {
+      var instance = await context.BookInstances.SingleOrDefaultAsync(bi => bi.Id == id);
+      if(instance != null)
+      {
+        var entry = context.Entry(instance);
+        entry.CurrentValues.SetValues(instance);
+      }
+    }
+    catch (LibraryContextException e)
+    {
+      throw new LibraryServiceException($"Error in book updating", e);
+    }
+    catch (Exception e)
+    {
+      throw new LibraryServiceException($"Error in book updating", e);
+    }
   }
 }

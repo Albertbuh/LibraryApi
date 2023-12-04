@@ -13,6 +13,7 @@ public class Genre
     Name = name;
   }
 
+
   public override bool Equals(object? obj)
   {
     if (obj is Genre g)
@@ -24,6 +25,6 @@ public class Genre
 
   public override int GetHashCode()
   {
-    return (7 * Id.GetHashCode() + 23 * Name.GetHashCode()) % Int32.MaxValue; 
+    return (23 * Name.GetHashCode()) % Int32.MaxValue; 
   }
 }

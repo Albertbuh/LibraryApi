@@ -57,7 +57,7 @@ public class Author
   {
     unchecked
     {
-      int hash = 34 * this.Id.GetHashCode(); 
+      int hash = 1832;
       hash += 3 * this.FirstName.GetHashCode();
       hash += (this.MiddleName != null ? 7 * this.MiddleName.GetHashCode() : 0);
       hash += (this.LastName != null ? 12 * this.LastName.GetHashCode() : 0);
