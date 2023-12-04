@@ -39,7 +39,7 @@ public class LibraryService : ILibraryService
     return bookList;
   }
 
-  public async Task<BookInstance?> GetBookById(int id)
+  public async Task<BookInstance?> GetBookInstanceById(int id)
   {
     BookInstance? result;
 
