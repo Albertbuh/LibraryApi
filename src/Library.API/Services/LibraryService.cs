@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Library.API.Services;
 
-public class LibraryService : ILibraryService
+public class LibraryService : ILibraryService 
 {
   private LibraryContext context = new LibraryContext();
 
@@ -22,10 +22,11 @@ public class LibraryService : ILibraryService
 
     try
     {
-      bookList = context.BookInstances
-                        .Include(bi => bi.Book.Genres)
-                        .Include(bi => bi.Book.Authors)
-                        .ToList();
+      bookList = context
+        .BookInstances
+        .Include(bi => bi.Book.Genres)
+        .Include(bi => bi.Book.Authors)
+        .ToList();
     }
     catch (LibraryContextException e)
     {
@@ -45,7 +46,11 @@ public class LibraryService : ILibraryService
 
     try
     {
-      result = await context.BookInstances.Include(bi => bi.Book).SingleOrDefaultAsync(b => b.Id == id);
+      result = await context
+        .BookInstances
+        .Include(bi => bi.Book.Genres)
+        .Include(bi => bi.Book.Authors)
+        .SingleOrDefaultAsync(b => b.Id == id);
     }
     catch (LibraryContextException e)
     {
@@ -65,10 +70,11 @@ public class LibraryService : ILibraryService
 
     try
     {
-      result = await context.BookEditions
-                      .Include(be => be.Genres)
-                      .Include(be => be.Authors)
-                      .SingleOrDefaultAsync(be => be.ISBN == isbn);
+      result = await context
+        .BookEditions
+        .Include(be => be.Genres)
+        .Include(be => be.Authors)
+        .SingleOrDefaultAsync(be => be.ISBN == isbn);
     }
     catch (LibraryContextException e)
     {
@@ -82,7 +88,7 @@ public class LibraryService : ILibraryService
     return result;
   }
 
-  public async void AddBookEdition(BookEdition bookInfo)
+  public async Task AddBookEdition(BookEdition bookInfo)
   {
     try
     {
@@ -103,7 +109,7 @@ public class LibraryService : ILibraryService
     }
   }
 
-  public async void AddBookInstances(string isbn, int amount)
+  public async Task AddBookInstances(string isbn, int amount)
   {
     try
     {
@@ -125,7 +131,7 @@ public class LibraryService : ILibraryService
     }
   }
 
-  public async void DeleteBookEdition(string isbn)
+  public async Task DeleteBookEdition(string isbn)
   {
     try
     {
@@ -146,7 +152,7 @@ public class LibraryService : ILibraryService
     }
   }
 
-  public async void DeleteBookInstance(int id)
+  public async Task DeleteBookInstance(int id)
   {
     try
     {
@@ -167,7 +173,7 @@ public class LibraryService : ILibraryService
     }
   }
 
-  public async void UpdateBookEdition(string isbn, BookEdition newInfo)
+  public async Task UpdateBookEdition(string isbn, BookEdition newInfo)
   {
     try
     {
@@ -195,15 +201,18 @@ public class LibraryService : ILibraryService
     }
   }
 
-  public async void UpdateBookInstance(int id, BookInstance newInfo)
+  public async Task UpdateBookInstance(int id, BookInstance newInfo)
   {
     try
     {
       var instance = await context.BookInstances.SingleOrDefaultAsync(bi => bi.Id == id);
-      if(instance != null)
+      if (instance != null)
       {
-        var entry = context.Entry(instance);
-        entry.CurrentValues.SetValues(instance);
+        // var entry = context.Entry(instance);
+        // entry.CurrentValues.SetValues(newInfo);
+        instance.DateOfTaken = newInfo.DateOfTaken;
+        instance.DateOfReturn = newInfo.DateOfReturn;
+        context.SaveChanges();
       }
     }
     catch (LibraryContextException e)
@@ -215,4 +224,5 @@ public class LibraryService : ILibraryService
       throw new LibraryServiceException($"Error in book updating", e);
     }
   }
+
 }
