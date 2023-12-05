@@ -1,4 +1,4 @@
-using Library.API.Services;
+// using Library.API.Services;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
@@ -6,7 +6,7 @@ ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsol
 ILogger logger = loggerFactory.CreateLogger<Program>();
 
 try {
-  var service = new LibraryService();
+  // var service = new LibraryService();
 }
 catch(MySqlConnector.MySqlException e)
 {

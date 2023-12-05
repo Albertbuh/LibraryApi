@@ -11,10 +11,9 @@ public class BookEdition
 
   public BookEdition() { }
 
-  public BookEdition(int id, string isbn, string title, string? description)
+  public BookEdition(string isbn, string title, string? description)
   {
-    Id = id;
-    ISBN = ISBN;
+    ISBN = isbn;
     Title = title;
     Description = description;
   }
