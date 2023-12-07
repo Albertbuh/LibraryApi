@@ -1,18 +1,44 @@
-// using Library.API.Services;
+using AutoMapper;
+using Library.API.Mappers;
+using Library.API.Services;
+
 var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder
+  .Services
+  .AddAutoMapper(
+    typeof(AuthorMappingProfile),
+    typeof(GenreMappingProfile),
+    typeof(BookInstanceMappingProfile),
+    typeof(BookEditionMappingProfile)
+  );
+builder.Services.AddTransient<ILibraryService, LibraryService>();
 
 ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 ILogger logger = loggerFactory.CreateLogger<Program>();
 
-try {
-  // var service = new LibraryService();
-}
-catch(MySqlConnector.MySqlException e)
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
 {
-  logger.LogError(0, e, "Error while refer to database");
+  app.UseSwagger();
+  app.UseSwaggerUI();
+  logger.LogInformation("Swagger connected");
 }
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "hello");
+app.MapGet(
+  "/catalog",
+  (IMapper mapper, ILibraryService service) =>
+  {
+    var bookInstances = service.GetAllBooks();
+    var dto = mapper.Map<List<Library.API.Models.DTO.BookInstanceDTO>>(bookInstances);
+
+    return TypedResults.Json(dto);
+  }
+);
 
 app.Run();
