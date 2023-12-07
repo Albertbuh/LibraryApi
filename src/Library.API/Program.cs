@@ -1,5 +1,4 @@
 using AutoMapper;
-using Library.API.Mappers;
 using Library.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +14,7 @@ builder
     typeof(BookInstanceMappingProfile),
     typeof(BookEditionMappingProfile)
   );
+  
 builder.Services.AddTransient<ILibraryService, LibraryService>();
 
 ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
