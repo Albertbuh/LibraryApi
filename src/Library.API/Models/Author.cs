@@ -53,6 +53,6 @@ public class Author
 
   public override string ToString()
   {
-    return $"{FirstName} {LastName} {MiddleName}";
+    return $"{LastName} {FirstName} {MiddleName}";
   }
 }
