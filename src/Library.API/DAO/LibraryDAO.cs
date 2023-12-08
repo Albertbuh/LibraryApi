@@ -1,11 +1,11 @@
+using Library.API.DAO.Exceptions;
 using Library.API.Infrastructure;
 using Library.API.Infrastructure.Exceptions;
-using Library.API.DAO.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.API.DAO;
 
-public class LibraryDAO : ILibraryDAO 
+public class LibraryDAO : ILibraryDAO
 {
   private LibraryContext context = new LibraryContext();
 
@@ -88,7 +88,7 @@ public class LibraryDAO : ILibraryDAO
     {
       bookInfo.Genres = FilterCorrectGenres(bookInfo.Genres);
       bookInfo.Authors = FilterCorrectAuthors(bookInfo.Authors);
-      
+
       context.BookEditions.Add(bookInfo);
       await context.SaveChangesAsync();
       result = true;
@@ -183,12 +183,18 @@ public class LibraryDAO : ILibraryDAO
     bool result = false;
     try
     {
-      var edition = context.BookEditions.SingleOrDefault(be => be.ISBN.Equals(isbn));
+      var edition = context
+        .BookEditions
+        .Include(be => be.Authors)
+        .Include(be => be.Genres)
+        .SingleOrDefault(be => be.ISBN.Equals(isbn));
+      
       if (edition != null)
       {
         edition.ISBN = newInfo.ISBN;
-        edition.Genres = newInfo.Genres;
-        edition.Authors = newInfo.Authors;
+        edition.Genres = FilterCorrectGenres(newInfo.Genres);
+        edition.Authors = FilterCorrectAuthors(newInfo.Authors);
+
         edition.Description = newInfo.Description;
         edition.Title = newInfo.Title;
 
@@ -198,13 +204,15 @@ public class LibraryDAO : ILibraryDAO
     }
     catch (LibraryContextException e)
     {
-      throw new LibraryDAOException($"Error in book updating", e);
+      System.Console.WriteLine(e);
+      throw new LibraryDAOException($"{e.Message}", e);
     }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error in book updating", e);
+      System.Console.WriteLine(e);
+      throw new LibraryDAOException($"{e.Message}", e);
     }
-    
+
     return result;
   }
 
@@ -213,7 +221,12 @@ public class LibraryDAO : ILibraryDAO
     bool result = false;
     try
     {
-      var instance = await context.BookInstances.SingleOrDefaultAsync(bi => bi.Id == id);
+      var instance = await context
+        .BookInstances
+        .Include(bi => bi.Book.Authors)
+        .Include(bi => bi.Book.Genres)
+        .SingleOrDefaultAsync(bi => bi.Id == id);
+      
       if (instance != null)
       {
         instance.DateOfTaken = newInfo.DateOfTaken;
@@ -237,9 +250,9 @@ public class LibraryDAO : ILibraryDAO
   private List<Genre> FilterCorrectGenres(IList<Genre> genres)
   {
     List<Genre> newGenres = new();
-    foreach(var item in context.Genres)
+    foreach (var item in context.Genres)
     {
-      if(genres.Contains(item))
+      if (genres.Contains(item))
         newGenres.Add(item);
     }
     return newGenres;
@@ -250,10 +263,9 @@ public class LibraryDAO : ILibraryDAO
     List<Author> newAuthors = new();
     foreach (var item in context.Authors)
     {
-      if(authors.Contains(item))
+      if (authors.Contains(item))
         newAuthors.Add(item);
     }
     return newAuthors;
   }
-
 }
