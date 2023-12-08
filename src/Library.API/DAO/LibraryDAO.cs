@@ -81,16 +81,17 @@ public class LibraryDAO : ILibraryDAO
     return result;
   }
 
-  public async Task AddBookEdition(BookEdition bookInfo)
+  public async Task<bool> AddBookEdition(BookEdition bookInfo)
   {
+    bool result = false;
     try
     {
-      var genres = await context.Genres.Where(g => bookInfo.Genres.Contains(g)).ToListAsync();
-      bookInfo.Genres = genres;
-      var authors = await context.Authors.Where(a => bookInfo.Authors.Contains(a)).ToListAsync();
-      bookInfo.Authors = authors;
-      await context.BookEditions.AddAsync(bookInfo);
+      bookInfo.Genres = FilterCorrectGenres(bookInfo.Genres);
+      bookInfo.Authors = FilterCorrectAuthors(bookInfo.Authors);
+      
+      context.BookEditions.Add(bookInfo);
       await context.SaveChangesAsync();
+      result = true;
     }
     catch (LibraryContextException e)
     {
@@ -100,10 +101,13 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error while add new edition", e);
     }
+
+    return result;
   }
 
-  public async Task AddBookInstances(string isbn, int amount)
+  public async Task<bool> AddBookInstances(string isbn, int amount)
   {
+    bool result = false;
     try
     {
       var edition = context.BookEditions.Single(be => be.ISBN.Equals(isbn));
@@ -113,6 +117,7 @@ public class LibraryDAO : ILibraryDAO
 
       await context.BookInstances.AddRangeAsync(instancesList);
       await context.SaveChangesAsync();
+      result = true;
     }
     catch (LibraryContextException e)
     {
@@ -122,10 +127,12 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error while add new instances", e);
     }
+    return result;
   }
 
-  public async Task DeleteBookEdition(string isbn)
+  public async Task<bool> DeleteBookEdition(string isbn)
   {
+    bool result = false;
     try
     {
       var edition = context.BookEditions.SingleOrDefault(be => be.ISBN == isbn);
@@ -133,6 +140,7 @@ public class LibraryDAO : ILibraryDAO
       {
         context.BookEditions.Remove(edition);
         await context.SaveChangesAsync();
+        result = true;
       }
     }
     catch (LibraryContextException e)
@@ -143,10 +151,12 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error while delete edition: {isbn}", e);
     }
+    return result;
   }
 
-  public async Task DeleteBookInstance(int id)
+  public async Task<bool> DeleteBookInstance(int id)
   {
+    bool result = false;
     try
     {
       var instance = context.BookInstances.SingleOrDefault(be => be.Id == id);
@@ -154,6 +164,7 @@ public class LibraryDAO : ILibraryDAO
       {
         context.BookInstances.Remove(instance);
         await context.SaveChangesAsync();
+        result = true;
       }
     }
     catch (LibraryContextException e)
@@ -164,17 +175,17 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error while delete edition: {id}", e);
     }
+    return result;
   }
 
-  public async Task UpdateBookEdition(string isbn, BookEdition newInfo)
+  public async Task<bool> UpdateBookEdition(string isbn, BookEdition newInfo)
   {
+    bool result = false;
     try
     {
       var edition = context.BookEditions.SingleOrDefault(be => be.ISBN.Equals(isbn));
       if (edition != null)
       {
-        // var entry = context.Entry(edition);
-        // entry.CurrentValues.SetValues(newInfo);
         edition.ISBN = newInfo.ISBN;
         edition.Genres = newInfo.Genres;
         edition.Authors = newInfo.Authors;
@@ -182,6 +193,7 @@ public class LibraryDAO : ILibraryDAO
         edition.Title = newInfo.Title;
 
         await context.SaveChangesAsync();
+        result = true;
       }
     }
     catch (LibraryContextException e)
@@ -192,10 +204,13 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error in book updating", e);
     }
+    
+    return result;
   }
 
-  public async Task UpdateBookInstance(int id, BookInstance newInfo)
+  public async Task<bool> UpdateBookInstance(int id, BookInstance newInfo)
   {
+    bool result = false;
     try
     {
       var instance = await context.BookInstances.SingleOrDefaultAsync(bi => bi.Id == id);
@@ -203,7 +218,8 @@ public class LibraryDAO : ILibraryDAO
       {
         instance.DateOfTaken = newInfo.DateOfTaken;
         instance.DateOfReturn = newInfo.DateOfReturn;
-        context.SaveChanges();
+        await context.SaveChangesAsync();
+        result = true;
       }
     }
     catch (LibraryContextException e)
@@ -214,6 +230,30 @@ public class LibraryDAO : ILibraryDAO
     {
       throw new LibraryDAOException($"Error in book updating", e);
     }
+
+    return result;
+  }
+
+  private List<Genre> FilterCorrectGenres(IList<Genre> genres)
+  {
+    List<Genre> newGenres = new();
+    foreach(var item in context.Genres)
+    {
+      if(genres.Contains(item))
+        newGenres.Add(item);
+    }
+    return newGenres;
+  }
+
+  private List<Author> FilterCorrectAuthors(IList<Author> authors)
+  {
+    List<Author> newAuthors = new();
+    foreach (var item in context.Authors)
+    {
+      if(authors.Contains(item))
+        newAuthors.Add(item);
+    }
+    return newAuthors;
   }
 
 }

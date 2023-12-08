@@ -27,4 +27,9 @@ public class Genre
   {
     return (23 * Name.GetHashCode()) % Int32.MaxValue; 
   }
+
+  public override string ToString()
+  {
+    return $"{Name}";
+  }
 }

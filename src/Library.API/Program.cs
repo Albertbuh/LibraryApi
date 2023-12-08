@@ -1,4 +1,5 @@
 using AutoMapper;
+using Library.API;
 using Library.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +15,7 @@ builder
     typeof(BookInstanceMappingProfile),
     typeof(BookEditionMappingProfile)
   );
-  
+
 builder.Services.AddTransient<ILibraryService, LibraryService>();
 
 ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -25,20 +26,15 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
-  app.UseSwaggerUI();
-  logger.LogInformation("Swagger connected");
+  app.UseSwaggerUI(options =>
+  {
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    options.RoutePrefix = String.Empty;
+  });
 }
 
 app.MapGet("/", () => "hello");
-app.MapGet(
-  "/catalog",
-  (IMapper mapper, ILibraryService service) =>
-  {
-    var bookInstances = service.GetAllBooks();
-    var dto = mapper.Map<List<Library.API.Models.DTO.BookInstanceDTO>>(bookInstances);
 
-    return TypedResults.Json(dto);
-  }
-);
+app.MapGroup("/api/v1/library").WithTags("Library API").MapLibraryApi();
 
-app.Run();
+app.Run("http://localhost:3000");
