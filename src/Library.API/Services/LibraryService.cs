@@ -70,9 +70,22 @@ public class LibraryService : ILibraryService
     if (!IsISBNValid(bookInfo.ISBN))
       return new LibraryServiceResponse("Invalid ISBN", false);
 
+    var response = new LibraryServiceResponse(
+      $"BookEdition with ISBN {bookInfo.ISBN} added to database",
+      true
+    );
+
     try
     {
-      await dao.AddBookEdition(bookInfo);
+      var isAdded = await dao.AddBookEdition(bookInfo);
+
+      if (!isAdded)
+      {
+        response = new LibraryServiceResponse(
+          $"Unable to add book edition isbn -> {bookInfo.ISBN}",
+          false
+        );
+      }
     }
     catch (LibraryDAOException e)
     {
@@ -90,10 +103,7 @@ public class LibraryService : ILibraryService
         throw new LibraryServiceException($"Error while add new edition");
       }
     }
-    return new LibraryServiceResponse(
-      $"BookEdition with ISBN {bookInfo.ISBN} added to database",
-      true
-    );
+    return response;
   }
 
   public async Task<LibraryServiceResponse> AddBookInstances(string isbn, int amount)
@@ -101,19 +111,29 @@ public class LibraryService : ILibraryService
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse("Invalid ISBN", false);
 
+    var result = new LibraryServiceResponse(
+      $"Added new book instances for {isbn} in {amount} copies",
+      true
+    );
+
     try
     {
-      await dao.AddBookInstances(isbn, amount);
+      bool isAdded = await dao.AddBookInstances(isbn, amount);
+
+      if (!isAdded)
+      {
+        result = new LibraryServiceResponse(
+          $"Unable to add instances for isbn -> {isbn}, check if it exists",
+          false
+        );
+      }
     }
     catch (LibraryDAOException e)
     {
       throw new LibraryServiceException($"Error while add new instances", e);
     }
 
-    return new LibraryServiceResponse(
-      $"Added new book instances for {isbn} in {amount} copies",
-      true
-    );
+    return result;
   }
 
   public async Task<LibraryServiceResponse> DeleteBookEdition(string isbn)
@@ -125,14 +145,14 @@ public class LibraryService : ILibraryService
     {
       bool isDeleted = await dao.DeleteBookEdition(isbn);
 
-      if(!isDeleted)
+      if (!isDeleted)
         return new LibraryServiceResponse($"Not found edition with isbn -> {isbn}", false);
     }
     catch (LibraryDAOException e)
     {
       throw new LibraryServiceException($"Error while delete edition: {isbn}", e);
     }
-    
+
     return new LibraryServiceResponse($"Successfull deletion of book edition {isbn}", true);
   }
 
@@ -145,7 +165,7 @@ public class LibraryService : ILibraryService
     {
       bool isDeleted = await dao.DeleteBookInstance(id);
 
-      if(!isDeleted)
+      if (!isDeleted)
         return new LibraryServiceResponse($"Instance with id -> {id} not founded", false);
     }
     catch (LibraryDAOException e)
@@ -186,19 +206,27 @@ public class LibraryService : ILibraryService
         false
       );
 
+    LibraryServiceResponse response = new LibraryServiceResponse(
+      $"New inforamtion for book instance with id -> {id} successfully loaded",
+      true
+    );
+
     try
     {
-      await dao.UpdateBookInstance(id, newInfo);
+      var isUpdated = await dao.UpdateBookInstance(id, newInfo);
+
+      if (!isUpdated)
+        response = new LibraryServiceResponse(
+          $"Unable to update book with id -> {id}, try to check if this book exists",
+          false
+        );
     }
     catch (LibraryDAOException e)
     {
       throw new LibraryServiceException($"Error in book updating", e);
     }
-    
-    return new LibraryServiceResponse(
-      $"New inforamtion for book instance with id -> {id} successfully loaded",
-      true
-    );
+
+    return response;
   }
 
   private bool IsISBNValid(string isbn)

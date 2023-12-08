@@ -1,11 +1,53 @@
-using AutoMapper;
+using System.Security.Claims;
 using Library.API;
 using Library.API.Services;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthorization();
+builder.Services
+  .AddAuthentication("Bearer")
+  .AddJwtBearer(opt =>
+  {
+    opt.TokenValidationParameters = JwtAuthProvider.GetTokenValidationParameters();
+  });
+
+builder
+  .Services
+  .AddSwaggerGen(options =>
+  {
+    var xmlFile = $"Library.API.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+    
+    options.AddSecurityDefinition(
+      "Bearer",
+      new OpenApiSecurityScheme
+      {
+        Description = @"Enter JWT Token please.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+      }
+    );
+    options.AddSecurityRequirement(
+      new OpenApiSecurityRequirement()
+      {
+        {
+          new OpenApiSecurityScheme
+          {
+            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+          },
+          new List<string>()
+        }
+      }
+    );
+  });
 
 builder
   .Services
@@ -18,10 +60,10 @@ builder
 
 builder.Services.AddTransient<ILibraryService, LibraryService>();
 
-ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-ILogger logger = loggerFactory.CreateLogger<Program>();
-
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -34,7 +76,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "hello");
+app.MapGet("/token", (string username) => 
+    { 
+      var claims = new List<Claim> { new Claim(ClaimTypes.Name, username)};
+      var jwt = JwtAuthProvider.GenerateJwt(claims, 180);
+      return jwt;
+    }
+    );
 
 app.MapGroup("/api/v1/library").WithTags("Library API").MapLibraryApi();
 
-app.Run("http://localhost:3000");
+app.Run();

@@ -110,21 +110,27 @@ public class LibraryDAO : ILibraryDAO
     bool result = false;
     try
     {
-      var edition = context.BookEditions.Single(be => be.ISBN.Equals(isbn));
-      var instancesList = new List<BookInstance>();
-      for (int i = 0; i < amount; i++)
-        instancesList.Add(new BookInstance(edition));
+      var edition = context.BookEditions.SingleOrDefault(be => be.ISBN.Equals(isbn));
 
-      await context.BookInstances.AddRangeAsync(instancesList);
-      await context.SaveChangesAsync();
-      result = true;
+      if (edition != null)
+      {
+        var instancesList = new List<BookInstance>();
+        for (int i = 0; i < amount; i++)
+          instancesList.Add(new BookInstance(edition));
+
+        await context.BookInstances.AddRangeAsync(instancesList);
+        await context.SaveChangesAsync();
+        result = true;
+      }
     }
     catch (LibraryContextException e)
     {
+      System.Console.WriteLine(e);
       throw new LibraryDAOException($"Error while add new instances", e);
     }
     catch (Exception e)
     {
+      System.Console.WriteLine(e);
       throw new LibraryDAOException($"Error while add new instances", e);
     }
     return result;
@@ -188,7 +194,7 @@ public class LibraryDAO : ILibraryDAO
         .Include(be => be.Authors)
         .Include(be => be.Genres)
         .SingleOrDefault(be => be.ISBN.Equals(isbn));
-      
+
       if (edition != null)
       {
         edition.ISBN = newInfo.ISBN;
@@ -226,7 +232,7 @@ public class LibraryDAO : ILibraryDAO
         .Include(bi => bi.Book.Authors)
         .Include(bi => bi.Book.Genres)
         .SingleOrDefaultAsync(bi => bi.Id == id);
-      
+
       if (instance != null)
       {
         instance.DateOfTaken = newInfo.DateOfTaken;
