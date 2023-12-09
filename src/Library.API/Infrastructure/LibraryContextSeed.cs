@@ -19,8 +19,8 @@ public class LibraryContextSeed
       1,
       new Author
       {
-        FirstName = "Пушкин",
-        LastName = "Александр",
+        LastName = "Пушкин",
+        FirstName = "Александр",
         MiddleName = "Сергеевич",
         Id = 1
       }
@@ -29,8 +29,8 @@ public class LibraryContextSeed
       2,
       new Author
       {
-        FirstName = "Достоевский",
-        LastName = "Фёдор",
+        LastName = "Достоевский",
+        FirstName = "Фёдор",
         MiddleName = "Михайлович",
         Id = 2
       }
@@ -39,8 +39,8 @@ public class LibraryContextSeed
       3,
       new Author
       {
-        FirstName = "Кинг",
-        LastName = "Стивен",
+        LastName = "Кинг",
+        FirstName = "Стивен",
         MiddleName = "Эдвин",
         Id = 3
       }
@@ -49,8 +49,8 @@ public class LibraryContextSeed
       4,
       new Author
       {
-        FirstName = "Лермонтов",
-        LastName = "Михаил",
+        LastName = "Лермонтов",
+        FirstName = "Михаил",
         MiddleName = "Юрьевич",
         Id = 4
       }

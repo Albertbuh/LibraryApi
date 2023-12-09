@@ -80,8 +80,8 @@ public class LibraryServiceTests
 
     if (bookList.Any())
     {
-      Assert.NotNull(bookList.FirstOrDefault(b => b.Book.Authors.Contains(testAuthor)));
-      Assert.NotNull(bookList.FirstOrDefault(b => b.Book.Genres.Contains(testGenre)));
+      Assert.NotNull(bookList.FirstOrDefault(b => b.Authors.Contains(testAuthor)));
+      Assert.NotNull(bookList.FirstOrDefault(b => b.Genres.Contains(testGenre)));
     }
     else
     {
