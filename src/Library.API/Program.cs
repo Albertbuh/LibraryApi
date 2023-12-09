@@ -97,8 +97,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "hello");
-app.MapGet("/token", (string username) => 
+app.MapGet("/token", (string? username) => 
     { 
+      if(username == null)
+        username = "user";
+        
       var claims = new List<Claim> { new Claim(ClaimTypes.Name, username)};
       var jwt = JwtAuthProvider.GenerateJwt(claims, 180);
       return jwt;
