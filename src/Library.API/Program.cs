@@ -1,9 +1,12 @@
 using System.Security.Claims;
 using Library.API;
 using Library.API.Services;
+using Library.API.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -58,9 +61,27 @@ builder
     typeof(BookEditionMappingProfile)
   );
 
+builder.Services.AddDbContext<LibraryContext>();
+
+
 builder.Services.AddTransient<ILibraryService, LibraryService>();
 
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+  var services = scope.ServiceProvider;
+
+  var context = services.GetRequiredService<LibraryContext>();
+  if (context.Database.GetPendingMigrations().Any())
+  {
+    context.Database.EnsureCreated();
+    
+    var seeder = new LibraryContextSeed();
+    await seeder.SeedAsync(context);
+  } 
+}
+
 
 app.UseAuthentication();
 app.UseAuthorization();

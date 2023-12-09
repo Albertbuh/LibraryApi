@@ -1,6 +1,5 @@
 using Library.API.DAO.Exceptions;
 using Library.API.Infrastructure;
-using Library.API.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.API.DAO;
@@ -8,8 +7,31 @@ namespace Library.API.DAO;
 public class LibraryDAO : ILibraryDAO
 {
   private LibraryContext context = new LibraryContext();
+  private ILogger logger;
 
-  public IList<BookInstance> GetAllBooks()
+  public LibraryDAO()
+  {
+    using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+    logger = factory.CreateLogger("LibraryDAO");
+  }
+  
+  public IList<BookEdition> GetAllBooks()
+  {
+    IList<BookEdition> bookList;
+
+    try
+    {
+      bookList = context.BookEditions.Include(b => b.Authors).Include(b => b.Genres).ToList();
+    }
+    catch (Exception e)
+    {
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
+    }
+    return bookList;
+  }
+
+  public IList<BookInstance> GetAllBookInstances()
   {
     IList<BookInstance> bookList;
 
@@ -21,13 +43,10 @@ public class LibraryDAO : ILibraryDAO
         .Include(bi => bi.Book.Authors)
         .ToList();
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException("Error while getting all books", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException("Error while getting all books", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
 
     return bookList;
@@ -45,13 +64,10 @@ public class LibraryDAO : ILibraryDAO
         .Include(bi => bi.Book.Authors)
         .SingleOrDefaultAsync(b => b.Id == id);
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error in getting book by id -> {id}", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error in getting book by id -> {id}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
 
     return result;
@@ -69,13 +85,10 @@ public class LibraryDAO : ILibraryDAO
         .Include(be => be.Authors)
         .SingleOrDefaultAsync(be => be.ISBN == isbn);
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error in getting book by ISBN -> {isbn}", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error in getting book by ISBN -> {isbn}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
 
     return result;
@@ -93,13 +106,10 @@ public class LibraryDAO : ILibraryDAO
       await context.SaveChangesAsync();
       result = true;
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error while add new edition", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error while add new edition", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
 
     return result;
@@ -123,15 +133,10 @@ public class LibraryDAO : ILibraryDAO
         result = true;
       }
     }
-    catch (LibraryContextException e)
-    {
-      System.Console.WriteLine(e);
-      throw new LibraryDAOException($"Error while add new instances", e);
-    }
     catch (Exception e)
     {
-      System.Console.WriteLine(e);
-      throw new LibraryDAOException($"Error while add new instances", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
     return result;
   }
@@ -149,13 +154,10 @@ public class LibraryDAO : ILibraryDAO
         result = true;
       }
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error while delete edition: {isbn}", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error while delete edition: {isbn}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString());
     }
     return result;
   }
@@ -173,13 +175,10 @@ public class LibraryDAO : ILibraryDAO
         result = true;
       }
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error while delete edition: {id}", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error while delete edition: {id}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString(), e);
     }
     return result;
   }
@@ -208,15 +207,10 @@ public class LibraryDAO : ILibraryDAO
         result = true;
       }
     }
-    catch (LibraryContextException e)
-    {
-      System.Console.WriteLine(e);
-      throw new LibraryDAOException($"{e.Message}", e);
-    }
     catch (Exception e)
     {
-      System.Console.WriteLine(e);
-      throw new LibraryDAOException($"{e.Message}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString(), e);
     }
 
     return result;
@@ -241,13 +235,10 @@ public class LibraryDAO : ILibraryDAO
         result = true;
       }
     }
-    catch (LibraryContextException e)
-    {
-      throw new LibraryDAOException($"Error in book updating", e);
-    }
     catch (Exception e)
     {
-      throw new LibraryDAOException($"Error in book updating", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryDAOException(e.ToString(), e);
     }
 
     return result;

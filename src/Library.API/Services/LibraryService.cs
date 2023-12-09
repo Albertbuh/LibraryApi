@@ -7,22 +7,42 @@ namespace Library.API.Services;
 public class LibraryService : ILibraryService
 {
   private ILibraryDAO dao;
+  private ILogger logger;
 
   public LibraryService()
   {
     dao = DAOFactory.Create().CreateLibraryDAO();
+
+    using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+    logger = factory.CreateLogger("LibraryService");
   }
 
-  public IList<BookInstance> GetAllBooks()
+  public IList<BookEdition> GetAllBooks()
   {
-    IList<BookInstance>? result = null;
+    IList<BookEdition>? result = null;
     try
     {
       result = dao.GetAllBooks();
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException("Error in getting list of book instances", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
+    }
+    return result;
+  }
+
+  public IList<BookInstance> GetAllBookInstances()
+  {
+    IList<BookInstance>? result = null;
+    try
+    {
+      result = dao.GetAllBookInstances();
+    }
+    catch (LibraryDAOException e)
+    {
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
     return result;
   }
@@ -40,7 +60,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error in getting book by id -> {id}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return result;
@@ -59,7 +80,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error in getting book by id -> {isbn}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return result;
@@ -100,7 +122,8 @@ public class LibraryService : ILibraryService
       }
       finally
       {
-        throw new LibraryServiceException($"Error while add new edition");
+        logger.LogWarning(e.ToString());
+        throw new LibraryServiceException(e.ToString(), e);
       }
     }
     return response;
@@ -130,7 +153,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error while add new instances", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return result;
@@ -150,7 +174,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error while delete edition: {isbn}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return new LibraryServiceResponse($"Successfull deletion of book edition {isbn}", true);
@@ -170,7 +195,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error while delete edition: {id}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
     return new LibraryServiceResponse($"Successfull deletion of book instance with id {id}", true);
   }
@@ -191,7 +217,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error in book updating:{e.Message}", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
     return new LibraryServiceResponse($"Book Edition has been updated", true);
   }
@@ -223,7 +250,8 @@ public class LibraryService : ILibraryService
     }
     catch (LibraryDAOException e)
     {
-      throw new LibraryServiceException($"Error in book updating", e);
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return response;

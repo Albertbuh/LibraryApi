@@ -2,7 +2,8 @@ namespace Library.API.DAO;
 
 public interface ILibraryDAO 
 {
-  public IList<BookInstance> GetAllBooks();
+  public IList<BookEdition> GetAllBooks();
+  public IList<BookInstance> GetAllBookInstances();
   public Task<BookInstance?> GetBookInstanceById(int id);
   public Task<BookEdition?> GetBookByISBN(string isbn);
   public Task<bool> AddBookEdition(BookEdition bookInfo);

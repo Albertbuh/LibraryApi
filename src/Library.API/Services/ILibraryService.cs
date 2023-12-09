@@ -2,7 +2,8 @@ namespace Library.API.Services;
 
 public interface ILibraryService 
 {
-  public IList<BookInstance> GetAllBooks();
+  public IList<BookEdition> GetAllBooks();
+  public IList<BookInstance> GetAllBookInstances();
   public Task<BookInstance?> GetBookInstanceById(int id);
   public Task<BookEdition?> GetBookByISBN(string isbn);
   public Task<LibraryServiceResponse> AddBookEdition(BookEdition bookInfo);

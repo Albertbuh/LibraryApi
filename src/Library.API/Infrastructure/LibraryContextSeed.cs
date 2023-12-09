@@ -1,4 +1,3 @@
-using Library.API.Models;
 using Library.API.Infrastructure.Exceptions;
 namespace Library.API.Infrastructure;
 
@@ -6,7 +5,8 @@ public class LibraryContextSeed
 {
   private Dictionary<string, Genre> genreDictionary = new Dictionary<string, Genre>();
   private Dictionary<int, Author> authorDictionary = new Dictionary<int, Author>();
-  private List<BookEdition> bookEditions = new List<BookEdition>();
+  private List<BookEdition> bookEditions = new();
+  private List<BookInstance> bookInstances = new();
   
   public LibraryContextSeed()
   {
@@ -111,10 +111,16 @@ public class LibraryContextSeed
         Genres = new List<Genre> { genreDictionary["ужасы"] }
       }
     );
+
+    foreach(var edition in bookEditions)
+    {
+      bookInstances.Add(new BookInstance(edition));
+    }
   }
 
-  public async void SeedAsync(LibraryContext context)
+  public async Task<bool> SeedAsync(LibraryContext context)
   {
+    bool result = false;
     try 
     {
       if(!context.Genres.Any())
@@ -132,12 +138,19 @@ public class LibraryContextSeed
         await context.BookEditions.AddRangeAsync(bookEditions);
       }
 
+      if(!context.BookInstances.Any())
+      {
+        await context.BookInstances.AddRangeAsync(bookInstances);
+      }
+      
       context.SaveChanges();
+      result = true;
     }
     catch(Exception e)
     {
       throw new LibraryContextException("Error while seeding data to library context",e);
     }
+    return result;
   }
 
 }

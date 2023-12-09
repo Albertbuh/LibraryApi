@@ -8,13 +8,16 @@ public static class LibraryAPI
 {
   public static IEndpointRouteBuilder MapLibraryApi(this IEndpointRouteBuilder app)
   {
-    app.MapGet("/items", GetAllBooks);
+    app.MapGet("/items", GetAllBookInstances);
+    app.MapGet("/items/by", GetAllBooks);
 
+    //work with editions
     app.MapGet("/items/by/{isbn}", GetBookByISBN);
     app.MapPost("/items", AddBookEdition).RequireAuthorization();
     app.MapPut("/items/by/{isbn}", UpdateBookEdition).RequireAuthorization();
     app.MapDelete("/items/by/{isbn}", DeleteBookEdition).RequireAuthorization();
 
+    //work with instances
     app.MapGet("/items/{id:int}", GetBookInstanceById);
     app.MapPost("/items/by/{isbn}", AddBookInstances).RequireAuthorization();
     app.MapPut("/items/{id:int}", UpdateBookInstance).RequireAuthorization();
@@ -24,14 +27,33 @@ public static class LibraryAPI
   }
 
   ///<summary>
-  /// Get all book instances 
-  /// </summary>
+  /// Get book editions
+  ///</summary>
   private static IResult GetAllBooks(IMapper mapper, ILibraryService service)
   {
     IResult result = TypedResults.Ok();
     try
     {
-      var bookInstances = service.GetAllBooks();
+      var bookEditions = service.GetAllBooks();
+      var dto = mapper.Map<List<BookEditionDTO>>(bookEditions);
+      result = TypedResults.Json(dto);
+    }
+    catch (LibraryServiceException e)
+    {
+      result = TypedResults.BadRequest(e.Message);
+    }
+    return result;
+  }
+  
+  ///<summary>
+  /// Get all book instances 
+  /// </summary>
+  private static IResult GetAllBookInstances(IMapper mapper, ILibraryService service)
+  {
+    IResult result = TypedResults.Ok();
+    try
+    {
+      var bookInstances = service.GetAllBookInstances();
       var dto = mapper.Map<List<BookInstanceDTO>>(bookInstances);
       result = TypedResults.Json(dto);
     }
@@ -39,6 +61,11 @@ public static class LibraryAPI
     {
       result = TypedResults.BadRequest(e.Message);
     }
+    catch (AutoMapper.AutoMapperMappingException e)
+    {
+      result = TypedResults.BadRequest(e.ToString());
+    }
+    
     return result;
   }
 
@@ -134,6 +161,7 @@ public static class LibraryAPI
   ///<summary>
   /// Create new book instances
   /// </summary>
+  /// <param name="service">library service</param>
   /// <param name="isbn">ISBN code of book edition, which instances need to add</param>
   /// <param name="amount">amount of books</param>
   private static async Task<IResult> AddBookInstances(
