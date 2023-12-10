@@ -18,15 +18,15 @@ Make sure you have the following software installed on your machine:
 - Clone the repository: https://github.com/Albertbuh/LibraryApi
 - Navigate to project directory:
 ```
-	cd library
+cd LibraryApi
 ```
 - Use docker compose to build neccessary images (mysql container for database + api container):
 ```
-	docker-compose -f src/Library.API/docker-compose.yml build
+docker-compose -f src/Library.API/docker-compose.yml build
 ```
 - Use docker-compose to start project:
 ```
-	docker-compose -f src/Library.API/docker-compose.yml up
+docker-compose -f src/Library.API/docker-compose.yml up
 ```
 -  Access the project:
 	Once the containers are up and running, you can access the project by opening your web browser and navigating to *http://localhost:5000*

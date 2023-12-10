@@ -133,6 +133,8 @@ public class LibraryService : ILibraryService
   {
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse("Invalid ISBN", false);
+    if(!(amount <= 100))
+      return new LibraryServiceResponse("Incorrect amount. Amount is [1, 100]");
 
     var result = new LibraryServiceResponse(
       $"Added new book instances for {isbn} in {amount} copies",

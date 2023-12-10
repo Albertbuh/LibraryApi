@@ -1,4 +1,3 @@
-using Library.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,8 +15,7 @@ public class AuthorTypeConfiguration : IEntityTypeConfiguration<Author>
       .HasColumnName("a_firstname")
       .HasColumnType("varchar(255)")
       .HasCharSet("utf8mb4")
-      .UseCollation("utf8mb4_general_ci")
-      .IsRequired();
+      .UseCollation("utf8mb4_general_ci");
     builder
       .Property(a => a.MiddleName)
       .HasColumnName("a_middlename")
@@ -29,7 +27,8 @@ public class AuthorTypeConfiguration : IEntityTypeConfiguration<Author>
       .HasColumnName("a_lastname")
       .HasColumnType("varchar(255)")
       .HasCharSet("utf8mb4")
-      .UseCollation("utf8mb4_general_ci");
+      .UseCollation("utf8mb4_general_ci")
+      .IsRequired();
     
     
     builder.HasIndex(a => a.FirstName);
