@@ -58,21 +58,13 @@ public class LibraryRepository : ILibraryRepository
     return affectedRowsNumber != 0;
   }
 
-  public async Task<bool> AddBookInstances(string isbn, int amount)
+  public async Task<bool> AddBookInstances(BookInstance[] bookInstances)
   {
     int affectedRowsNumber = 0;
-    var edition = context.BookEditions.SingleOrDefault(be => be.ISBN.Equals(isbn));
-
-    if (edition != null)
-    {
-      var instancesList = new List<BookInstance>();
-      for (int i = 0; i < amount; i++)
-        instancesList.Add(new BookInstance(edition));
-
-      await context.BookInstances.AddRangeAsync(instancesList);
-      affectedRowsNumber = await context.SaveChangesAsync();
-    }
-
+    
+    await context.BookInstances.AddRangeAsync(bookInstances);
+    affectedRowsNumber = await context.SaveChangesAsync();
+    
     return affectedRowsNumber != 0;
   }
 
