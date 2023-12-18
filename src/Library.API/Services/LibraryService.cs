@@ -1,30 +1,34 @@
-using Library.API.DAO;
-using Library.API.DAO.Exceptions;
 using Library.API.Services.Exceptions;
+using Library.API.Repositories;
+using AutoMapper;
+// using Library.API.Repositories.Exceptions;
 
 namespace Library.API.Services;
 
 public class LibraryService : ILibraryService
 {
-  private ILibraryDAO dao;
+  private ILibraryRepository repository;
   private ILogger logger;
+  private IMapper mapper;
 
-  public LibraryService()
+  public LibraryService(IMapper mapper)
   {
-    dao = DAOFactory.Create().CreateLibraryDAO();
+    repository = RepositoryFactory.Create().CreateLibraryRepository();
+    this.mapper = mapper;
 
     using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
     logger = factory.CreateLogger("LibraryService");
   }
 
-  public IList<BookEdition> GetAllBooks()
+  public IList<BookEditionDTO> GetAllBooks()
   {
-    IList<BookEdition>? result = null;
+    IList<BookEditionDTO>? result = null;
     try
     {
-      result = dao.GetAllBooks();
+      var bookEditions = repository.GetAllBooks();
+      result = mapper.Map<List<BookEditionDTO>>(bookEditions);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -32,14 +36,15 @@ public class LibraryService : ILibraryService
     return result;
   }
 
-  public IList<BookInstance> GetAllBookInstances()
+  public IList<BookInstanceDTO> GetAllBookInstances()
   {
-    IList<BookInstance>? result = null;
+    IList<BookInstanceDTO>? result = null;
     try
     {
-      result = dao.GetAllBookInstances();
+      var bookInstances = repository.GetAllBookInstances();
+      result =  mapper.Map<List<BookInstanceDTO>>(bookInstances);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -47,18 +52,19 @@ public class LibraryService : ILibraryService
     return result;
   }
 
-  public async Task<BookInstance?> GetBookInstanceById(int id)
+  public async Task<BookInstanceDTO?> GetBookInstanceById(int id)
   {
     if (id <= 0)
       return null;
 
-    BookInstance? result;
+    BookInstanceDTO? result;
 
     try
     {
-      result = await dao.GetBookInstanceById(id);
+      var bookInstance = await repository.GetBookInstanceById(id);
+      result = mapper.Map<BookInstanceDTO>(bookInstance);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -67,18 +73,19 @@ public class LibraryService : ILibraryService
     return result;
   }
 
-  public async Task<BookEdition?> GetBookByISBN(string isbn)
+  public async Task<BookEditionDTO?> GetBookByISBN(string isbn)
   {
     if (!IsISBNValid(isbn))
       return null;
 
-    BookEdition? result;
+    BookEditionDTO? result;
 
     try
     {
-      result = await dao.GetBookByISBN(isbn);
+      var bookEdition = await repository.GetBookByISBN(isbn);
+      result = mapper.Map<BookEditionDTO>(bookEdition);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -87,36 +94,37 @@ public class LibraryService : ILibraryService
     return result;
   }
 
-  public async Task<LibraryServiceResponse> AddBookEdition(BookEdition bookInfo)
+  public async Task<LibraryServiceResponse> AddBookEdition(BookEditionDTO bookEditionDTO)
   {
-    if (!IsISBNValid(bookInfo.ISBN))
+    if (!IsISBNValid(bookEditionDTO.ISBN))
       return new LibraryServiceResponse("Invalid ISBN", false);
 
     var response = new LibraryServiceResponse(
-      $"BookEdition with ISBN {bookInfo.ISBN} added to database",
+      $"BookEdition with ISBN {bookEditionDTO.ISBN} added to database",
       true
     );
 
     try
     {
-      var isAdded = await dao.AddBookEdition(bookInfo);
+      var edition = mapper.Map<BookEdition>(bookEditionDTO);
+      var isAdded = await repository.AddBookEdition(edition);
 
       if (!isAdded)
       {
         response = new LibraryServiceResponse(
-          $"Unable to add book edition isbn -> {bookInfo.ISBN}",
+          $"Unable to add book edition isbn -> {edition.ISBN}",
           false
         );
       }
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       try
       {
-        var bookEdition = GetBookByISBN(bookInfo.ISBN);
+        var bookEdition = GetBookByISBN(bookEditionDTO.ISBN);
         if (bookEdition != null)
           throw new LibraryServiceException(
-            $"Book with ISBN -> {bookInfo.ISBN} is already in DB",
+            $"Book with ISBN -> {bookEditionDTO.ISBN} is already in DB",
             e
           );
       }
@@ -133,18 +141,24 @@ public class LibraryService : ILibraryService
   {
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse("Invalid ISBN", false);
-    if(!(amount <= 100))
+    if(amount < 0 || amount > 100)
       return new LibraryServiceResponse("Incorrect amount. Amount is [1, 100]");
 
     var result = new LibraryServiceResponse(
       $"Added new book instances for {isbn} in {amount} copies",
       true
     );
-
-    try
+    
+    var edition = await repository.GetBookByISBN(isbn);
+    bool isAdded = false;
+    if(edition != null)
     {
-      bool isAdded = await dao.AddBookInstances(isbn, amount);
-
+      var instances = new BookInstance[amount];
+      for(int i = 0; i < amount; i++)
+        instances[i] = new BookInstance(edition);
+      
+      isAdded = await repository.AddBookInstances(instances);
+      
       if (!isAdded)
       {
         result = new LibraryServiceResponse(
@@ -152,11 +166,6 @@ public class LibraryService : ILibraryService
           false
         );
       }
-    }
-    catch (LibraryDAOException e)
-    {
-      logger.LogWarning(e.ToString());
-      throw new LibraryServiceException(e.ToString(), e);
     }
 
     return result;
@@ -169,12 +178,12 @@ public class LibraryService : ILibraryService
 
     try
     {
-      bool isDeleted = await dao.DeleteBookEdition(isbn);
+      bool isDeleted = await repository.DeleteBookEdition(isbn);
 
       if (!isDeleted)
         return new LibraryServiceResponse($"Not found edition with isbn -> {isbn}", false);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -190,12 +199,12 @@ public class LibraryService : ILibraryService
 
     try
     {
-      bool isDeleted = await dao.DeleteBookInstance(id);
+      bool isDeleted = await repository.DeleteBookInstance(id);
 
       if (!isDeleted)
         return new LibraryServiceResponse($"Instance with id -> {id} not founded", false);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -203,21 +212,22 @@ public class LibraryService : ILibraryService
     return new LibraryServiceResponse($"Successfull deletion of book instance with id {id}", true);
   }
 
-  public async Task<LibraryServiceResponse> UpdateBookEdition(string isbn, BookEdition newInfo)
+  public async Task<LibraryServiceResponse> UpdateBookEdition(string isbn, BookEditionDTO newInfoDTO)
   {
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse($"Invalid ISBN {isbn}", false);
-    if (!IsISBNValid(newInfo.ISBN))
+    if (!IsISBNValid(newInfoDTO.ISBN))
       return new LibraryServiceResponse(
-        $"Invalid ISBN of BookEdition update info {newInfo.ISBN}",
+        $"Invalid ISBN of BookEdition update info {newInfoDTO.ISBN}",
         false
       );
 
     try
     {
-      await dao.UpdateBookEdition(isbn, newInfo);
+      var newInfo = mapper.Map<BookEdition>(newInfoDTO);
+      await repository.UpdateBookEdition(isbn, newInfo);
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
@@ -225,13 +235,13 @@ public class LibraryService : ILibraryService
     return new LibraryServiceResponse($"Book Edition has been updated", true);
   }
 
-  public async Task<LibraryServiceResponse> UpdateBookInstance(int id, BookInstance newInfo)
+  public async Task<LibraryServiceResponse> UpdateBookInstance(int id, BookInstanceDTO newInfoDTO)
   {
     if (id <= 0)
       return new LibraryServiceResponse("Id < 0", false);
-    if (!IsISBNValid(newInfo.Book.ISBN))
+    if (!IsISBNValid(newInfoDTO.ISBN))
       return new LibraryServiceResponse(
-        $"Invalid ISBN of Book instance update info: {newInfo.Book.ISBN}",
+        $"Invalid ISBN of Book instance update info: {newInfoDTO.ISBN}",
         false
       );
 
@@ -242,7 +252,8 @@ public class LibraryService : ILibraryService
 
     try
     {
-      var isUpdated = await dao.UpdateBookInstance(id, newInfo);
+      var newInfo = mapper.Map<BookInstance>(newInfoDTO);
+      var isUpdated = await repository.UpdateBookInstance(id, newInfo);
 
       if (!isUpdated)
         response = new LibraryServiceResponse(
@@ -250,7 +261,7 @@ public class LibraryService : ILibraryService
           false
         );
     }
-    catch (LibraryDAOException e)
+    catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);

@@ -35,8 +35,7 @@ public static class LibraryAPI
     try
     {
       var bookEditions = service.GetAllBooks();
-      var dto = mapper.Map<List<BookEditionDTO>>(bookEditions);
-      result = TypedResults.Json(dto);
+      result = TypedResults.Json(bookEditions);
     }
     catch (LibraryServiceException e)
     {
@@ -54,8 +53,7 @@ public static class LibraryAPI
     try
     {
       var bookInstances = service.GetAllBookInstances();
-      var dto = mapper.Map<List<BookInstanceDTO>>(bookInstances);
-      result = TypedResults.Json(dto);
+      result = TypedResults.Json(bookInstances);
     }
     catch (LibraryServiceException e)
     {
@@ -88,8 +86,7 @@ public static class LibraryAPI
         result = TypedResults.NotFound($"Not found instance with id {id}");
       else
       {
-        var dto = mapper.Map<BookInstanceDTO>(bookInstance);
-        result = TypedResults.Json(dto);
+        result = TypedResults.Json(bookInstance);
       }
     }
     catch (LibraryServiceException e)
@@ -118,8 +115,7 @@ public static class LibraryAPI
         result = TypedResults.NotFound($"Not found edition with isbn -> {isbn}");
       else
       {
-        var dto = mapper.Map<BookEditionDTO>(bookEdition);
-        result = TypedResults.Json(dto);
+        result = TypedResults.Json(bookEdition);
       }
     }
     catch (LibraryServiceException e)
@@ -142,13 +138,12 @@ public static class LibraryAPI
     IResult result = TypedResults.Ok();
     try
     {
-      var edition = mapper.Map<BookEdition>(editionDTO);
-      var response = await service.AddBookEdition(edition);
+      var response = await service.AddBookEdition(editionDTO);
 
       if (!response.Result)
         result = TypedResults.BadRequest(response.Message);
       else
-        result = TypedResults.Created($"api/v1/library/items/by/{edition.ISBN}");
+        result = TypedResults.Created($"api/v1/library/items/by/{editionDTO.ISBN}");
     }
     catch (LibraryServiceException e)
     {
@@ -174,6 +169,7 @@ public static class LibraryAPI
     try
     {
       var response = await service.AddBookInstances(isbn, amount);
+      
       if (response.Result == false)
         result = TypedResults.BadRequest(response.Message);
       else
@@ -199,8 +195,7 @@ public static class LibraryAPI
     IResult result = TypedResults.Ok();
     try
     {
-      var info = mapper.Map<BookEdition>(newBookEditionInfo);
-      var response = await service.UpdateBookEdition(isbn, info);
+      var response = await service.UpdateBookEdition(isbn, newBookEditionInfo);
 
       if (response.Result)
         result = TypedResults.Ok(response.Message);
@@ -231,8 +226,7 @@ public static class LibraryAPI
     IResult result = TypedResults.Ok();
     try
     {
-      var info = mapper.Map<BookInstance>(newBookInstance);
-      var response = await service.UpdateBookInstance(id, info);
+      var response = await service.UpdateBookInstance(id, newBookInstance);
 
       if (response.Result)
         result = TypedResults.Ok(response.Message);
