@@ -48,12 +48,9 @@ public class LibraryRepository : ILibraryRepository
 
   public async Task<bool> AddBookEdition(BookEdition bookInfo)
   {
-    // bookInfo.Genres = FilterCorrectGenres(bookInfo.Genres);
-    // bookInfo.Authors = FilterCorrectAuthors(bookInfo.Authors);
+    bookInfo.Genres = FilterCorrectGenres(bookInfo.Genres);
+    bookInfo.Authors = FilterCorrectAuthors(bookInfo.Authors);
 
-    // Get links to neccessary authors and genres by their names
-    bookInfo.Genres = (List<Genre>)context.Genres.Where(g => bookInfo.Genres.Contains(g));
-    bookInfo.Authors = (List<Author>)context.Authors.Where(a => bookInfo.Authors.Contains(a));
 
     context.BookEditions.Add(bookInfo);
     var affectedRowsNumber = await context.SaveChangesAsync();
@@ -75,100 +72,95 @@ public class LibraryRepository : ILibraryRepository
       await context.BookInstances.AddRangeAsync(instancesList);
       affectedRowsNumber = await context.SaveChangesAsync();
     }
-    
+
     return affectedRowsNumber != 0;
   }
 
   public async Task<bool> DeleteBookEdition(string isbn)
   {
-    bool result = false;
-      var edition = context.BookEditions.SingleOrDefault(be => be.ISBN == isbn);
-      if (edition != null)
-      {
-        context.BookEditions.Remove(edition);
-        await context.SaveChangesAsync();
-        result = true;
-      }
-    return result;
+    int affectedRowsNumber = 0;
+
+    var edition = context.BookEditions.SingleOrDefault(be => be.ISBN == isbn);
+    if (edition != null)
+    {
+      context.BookEditions.Remove(edition);
+      affectedRowsNumber = await context.SaveChangesAsync();
+    }
+
+    return affectedRowsNumber != 0;
   }
 
   public async Task<bool> DeleteBookInstance(int id)
   {
-    bool result = false;
-      var instance = context.BookInstances.SingleOrDefault(be => be.Id == id);
-      if (instance != null)
-      {
-        context.BookInstances.Remove(instance);
-        await context.SaveChangesAsync();
-        result = true;
-      }
-    return result;
+    int affectedRowsNumber = 0;
+
+    var instance = context.BookInstances.SingleOrDefault(be => be.Id == id);
+    if (instance != null)
+    {
+      context.BookInstances.Remove(instance);
+      affectedRowsNumber = await context.SaveChangesAsync();
+    }
+
+    return affectedRowsNumber != 0;
   }
 
   public async Task<bool> UpdateBookEdition(string isbn, BookEdition newInfo)
   {
-    bool result = false;
-      var edition = context
-        .BookEditions
-        .Include(be => be.Authors)
-        .Include(be => be.Genres)
-        .SingleOrDefault(be => be.ISBN.Equals(isbn));
+    int affectedRowsNumber = 0;
+    var edition = context
+      .BookEditions
+      .Include(be => be.Authors)
+      .Include(be => be.Genres)
+      .SingleOrDefault(be => be.ISBN.Equals(isbn));
 
-      if (edition != null)
-      {
-        edition.ISBN = newInfo.ISBN;
-        edition.Genres = FilterCorrectGenres(newInfo.Genres);
-        edition.Authors = FilterCorrectAuthors(newInfo.Authors);
+    if (edition != null)
+    {
+      edition.ISBN = newInfo.ISBN;
+      edition.Genres = FilterCorrectGenres(newInfo.Genres);
+      edition.Authors = FilterCorrectAuthors(newInfo.Authors);
 
-        edition.Description = newInfo.Description;
-        edition.Title = newInfo.Title;
+      edition.Description = newInfo.Description;
+      edition.Title = newInfo.Title;
 
-        await context.SaveChangesAsync();
-        result = true;
-      }
+      affectedRowsNumber = await context.SaveChangesAsync();
+    }
 
-    return result;
+    return affectedRowsNumber != 0;
   }
 
   public async Task<bool> UpdateBookInstance(int id, BookInstance newInfo)
   {
-    bool result = false;
-      var instance = await context
-        .BookInstances
-        .Include(bi => bi.Book.Authors)
-        .Include(bi => bi.Book.Genres)
-        .SingleOrDefaultAsync(bi => bi.Id == id);
+    int affectedRowsNumber = 0;
+    var instance = await context
+      .BookInstances
+      .Include(bi => bi.Book.Authors)
+      .Include(bi => bi.Book.Genres)
+      .SingleOrDefaultAsync(bi => bi.Id == id);
 
-      if (instance != null)
-      {
-        instance.DateOfTaken = newInfo.DateOfTaken;
-        instance.DateOfReturn = newInfo.DateOfReturn;
-        await context.SaveChangesAsync();
-        result = true;
-      }
+    if (instance != null)
+    {
+      instance.DateOfTaken = newInfo.DateOfTaken;
+      instance.DateOfReturn = newInfo.DateOfReturn;
+      affectedRowsNumber = await context.SaveChangesAsync();
+    }
 
-    return result;
+    return affectedRowsNumber != 0;
   }
 
   private List<Genre> FilterCorrectGenres(IList<Genre> genres)
   {
-    List<Genre> newGenres = new();
-    foreach (var item in context.Genres)
-    {
-      if (genres.Contains(item))
-        newGenres.Add(item);
-    }
-    return newGenres;
+    return (List<Genre>)context.Genres.Where(g => genres.Contains(g));
   }
 
   private List<Author> FilterCorrectAuthors(IList<Author> authors)
   {
-    List<Author> newAuthors = new();
-    foreach (var item in context.Authors)
-    {
-      if (authors.Contains(item))
-        newAuthors.Add(item);
-    }
-    return newAuthors;
+    // List<Author> newAuthors = new();
+    // foreach (var item in context.Authors)
+    // {
+    //   if (authors.Contains(item))
+    //     newAuthors.Add(item);
+    // }
+    
+    return (List<Author>)context.Authors.Where(a => authors.Contains(a));
   }
 }
