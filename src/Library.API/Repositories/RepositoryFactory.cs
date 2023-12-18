@@ -1,17 +1,17 @@
+using Library.API.Infrastructure;
 namespace Library.API.Repositories;
 
 public class RepositoryFactory
 {
-  private ILibraryRepository libraryRepository = new LibraryRepository();
 
   public static RepositoryFactory Create()
   {
     return new RepositoryFactory();
   }
 
-  public ILibraryRepository CreateLibraryRepository()
+  public ILibraryRepository CreateLibraryRepository(LibraryContext context)
   {
-    return libraryRepository;
+    return new LibraryRepository(context);
   }
 
 }

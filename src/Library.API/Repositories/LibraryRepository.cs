@@ -5,13 +5,15 @@ namespace Library.API.Repositories;
 
 public class LibraryRepository : ILibraryRepository
 {
-  private LibraryContext context = new LibraryContext();
+  private LibraryContext context;
   private ILogger logger;
 
-  public LibraryRepository()
+  public LibraryRepository(LibraryContext context)
   {
     using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
     logger = factory.CreateLogger("LibraryRepository");
+
+    this.context = context;
   }
 
   public IList<BookEdition> GetAllBooks()
@@ -141,7 +143,26 @@ public class LibraryRepository : ILibraryRepository
 
   private List<Genre> FilterCorrectGenres(IList<Genre> genres)
   {
-    return (List<Genre>)context.Genres.Where(g => genres.Contains(g));
+    List<Genre> newGenres = new();
+    foreach (var item in context.Genres)
+    {
+      if (genres.Contains(item))
+        newGenres.Add(item);
+    }
+
+    var aboba = context.Genres.Where(g => genres.Contains(g));
+    foreach(var a in aboba)
+    {
+      logger.LogInformation($"GENRE {a.ToString().ToUpper()}");
+    }
+    return newGenres;
+    // var result = new List<Genre>();
+    // result.AddRange(context.Genres.Where(g => genres.Contains(g)));
+    // foreach(var r in result)
+    // {
+    //   logger.LogInformation(r.ToString().ToUpper());   
+    // }
+    // return result;
   }
 
   private List<Author> FilterCorrectAuthors(IList<Author> authors)
@@ -152,7 +173,8 @@ public class LibraryRepository : ILibraryRepository
     //   if (authors.Contains(item))
     //     newAuthors.Add(item);
     // }
-    
-    return (List<Author>)context.Authors.Where(a => authors.Contains(a));
+    var result = new List<Author>();
+    result.AddRange(context.Authors.Where(a => authors.Contains(a)).Select(g => g));
+    return result;
   }
 }
