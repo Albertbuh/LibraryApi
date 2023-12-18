@@ -1,6 +1,6 @@
-namespace Library.API.DAO;
+namespace Library.API.Repositories;
 
-public interface ILibraryDAO 
+public interface ILibraryRepository 
 {
   public IList<BookEdition> GetAllBooks();
   public IList<BookInstance> GetAllBookInstances();
