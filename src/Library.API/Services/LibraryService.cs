@@ -1,5 +1,6 @@
 using Library.API.Services.Exceptions;
 using Library.API.Repositories;
+using Library.API.Infrastructure;
 using AutoMapper;
 // using Library.API.Repositories.Exceptions;
 
@@ -11,9 +12,9 @@ public class LibraryService : ILibraryService
   private ILogger logger;
   private IMapper mapper;
 
-  public LibraryService(IMapper mapper)
+  public LibraryService(IMapper mapper, LibraryContext context)
   {
-    repository = RepositoryFactory.Create().CreateLibraryRepository();
+    repository = RepositoryFactory.Create().CreateLibraryRepository(context);
     this.mapper = mapper;
 
     using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
