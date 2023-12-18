@@ -61,7 +61,13 @@ builder
     typeof(BookEditionMappingProfile)
   );
 
-builder.Services.AddDbContext<LibraryContext>();
+
+builder.Services.AddDbContext<LibraryContext>(
+    options => options.UseMySql(
+      builder.Configuration.GetConnectionString("DefaultConnection"),
+      Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.32-mysql")
+      )
+    );
 
 
 builder.Services.AddTransient<ILibraryService, LibraryService>();
