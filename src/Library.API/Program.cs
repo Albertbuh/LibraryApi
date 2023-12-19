@@ -1,17 +1,17 @@
-using System.Security.Claims;
 using Library.API;
-using Library.API.Services;
 using Library.API.Infrastructure;
+using Library.API.Middlewares;
+using Library.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddAuthorization();
-builder.Services
+builder
+  .Services
   .AddAuthentication("Bearer")
   .AddJwtBearer(opt =>
   {
@@ -25,7 +25,7 @@ builder
     var xmlFile = $"Library.API.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
-    
+
     options.AddSecurityDefinition(
       "Bearer",
       new OpenApiSecurityScheme
@@ -61,20 +61,24 @@ builder
     typeof(BookEditionMappingProfile)
   );
 
-
-builder.Services.AddDbContext<LibraryContext>(
-    options => options.UseMySql(
-      builder.Configuration.GetConnectionString("DefaultConnection"),
-      Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.32-mysql")
+builder
+  .Services
+  .AddDbContext<LibraryContext>(
+    options =>
+      options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.32-mysql")
       )
-    );
-
+  );
 
 builder.Services.AddTransient<ILibraryService, LibraryService>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
 var app = builder.Build();
 
-using(var scope = app.Services.CreateScope())
+app.UseMiddleware<LibraryExceptionMiddleware>();
+
+using (var scope = app.Services.CreateScope())
 {
   var services = scope.ServiceProvider;
 
@@ -82,12 +86,11 @@ using(var scope = app.Services.CreateScope())
   if (context.Database.GetPendingMigrations().Any())
   {
     context.Database.EnsureCreated();
-    
+
     var seeder = new LibraryContextSeed();
     await seeder.SeedAsync(context);
-  } 
+  }
 }
-
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -101,18 +104,6 @@ if (app.Environment.IsDevelopment())
     options.RoutePrefix = String.Empty;
   });
 }
-
-app.MapGet("/", () => "hello");
-app.MapGet("/token", (string? username) => 
-    { 
-      if(username == null)
-        username = "user";
-        
-      var claims = new List<Claim> { new Claim(ClaimTypes.Name, username)};
-      var jwt = JwtAuthProvider.GenerateJwt(claims, 180);
-      return jwt;
-    }
-    );
 
 app.MapGroup("/api/v1/library").WithTags("Library API").MapLibraryApi();
 

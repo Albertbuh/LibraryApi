@@ -1,6 +1,4 @@
-using AutoMapper;
 using Library.API.Services;
-using Library.API.Services.Exceptions;
 
 namespace Library.API;
 
@@ -23,134 +21,74 @@ public static class LibraryAPI
     app.MapPut("/items/{id:int}", UpdateBookInstance).RequireAuthorization();
     app.MapDelete("/items/{id:int}", DeleteBookInstance).RequireAuthorization();
 
+    app.MapGet("/token", GetToken);
     return app;
   }
 
   ///<summary>
   /// Get book editions
   ///</summary>
-  private static IResult GetAllBooks(IMapper mapper, ILibraryService service)
+  private static IResult GetAllBooks(ILibraryService service)
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var bookEditions = service.GetAllBooks();
-      result = TypedResults.Json(bookEditions);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-    return result;
-  }
-  
-  ///<summary>
-  /// Get all book instances 
-  /// </summary>
-  private static IResult GetAllBookInstances(IMapper mapper, ILibraryService service)
-  {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var bookInstances = service.GetAllBookInstances();
-      result = TypedResults.Json(bookInstances);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-    catch (AutoMapper.AutoMapperMappingException e)
-    {
-      result = TypedResults.BadRequest(e.ToString());
-    }
-    
-    return result;
+    var bookEditions = service.GetAllBooks();
+    return TypedResults.Json(bookEditions);
   }
 
-  
+  ///<summary>
+  /// Get all book instances
+  /// </summary>
+  private static IResult GetAllBookInstances(ILibraryService service)
+  {
+    var bookInstances = service.GetAllBookInstances();
+    return TypedResults.Json(bookInstances);
+  }
+
   ///<summary>
   /// Get book instance using Id
   /// </summary>
   private static async Task<IResult> GetBookInstanceById(
-    IMapper mapper,
     ILibraryService service,
     int id
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var bookInstance = await service.GetBookInstanceById(id);
+    var bookInstance = await service.GetBookInstanceById(id);
 
-      if (bookInstance == null)
-        result = TypedResults.NotFound($"Not found instance with id {id}");
-      else
-      {
-        result = TypedResults.Json(bookInstance);
-      }
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
+    if (bookInstance == null)
+      return TypedResults.NotFound($"Not found instance with id {id}");
 
-    return result;
+    return TypedResults.Json(bookInstance);
   }
 
   ///<summary>
   /// Get book edition using ISBN
   /// </summary>
   private static async Task<IResult> GetBookByISBN(
-    IMapper mapper,
     ILibraryService service,
     string isbn
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var bookEdition = await service.GetBookByISBN(isbn);
+    var bookEdition = await service.GetBookByISBN(isbn);
 
-      if (bookEdition == null)
-        result = TypedResults.NotFound($"Not found edition with isbn -> {isbn}");
-      else
-      {
-        result = TypedResults.Json(bookEdition);
-      }
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
+    if (bookEdition == null)
+      return TypedResults.NotFound($"Not found edition with isbn -> {isbn}");
 
-    return result;
+    return TypedResults.Json(bookEdition);
   }
 
   ///<summary>
   /// Create new book edition
   /// </summary>
   private static async Task<IResult> AddBookEdition(
-    IMapper mapper,
     ILibraryService service,
     BookEditionDTO editionDTO
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var response = await service.AddBookEdition(editionDTO);
+    var response = await service.AddBookEdition(editionDTO);
 
-      if (!response.Result)
-        result = TypedResults.BadRequest(response.Message);
-      else
-        result = TypedResults.Created($"api/v1/library/items/by/{editionDTO.ISBN}");
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
+    if (!response.Result)
+      return TypedResults.BadRequest(response.Message);
 
-    return result;
+    return TypedResults.Created($"api/v1/library/items/by/{editionDTO.ISBN}");
   }
 
   ///<summary>
@@ -165,80 +103,47 @@ public static class LibraryAPI
     int amount
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var response = await service.AddBookInstances(isbn, amount);
-      
-      if (response.Result == false)
-        result = TypedResults.BadRequest(response.Message);
-      else
-        result = TypedResults.Ok(response.Message);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-    return result;
+    var response = await service.AddBookInstances(isbn, amount);
+
+    if (response.Result == false)
+      return TypedResults.BadRequest(response.Message);
+
+    return TypedResults.Ok(response.Message);
   }
 
   ///<summary>
   /// Update book edition info
   /// </summary>
   private static async Task<IResult> UpdateBookEdition(
-    IMapper mapper,
     ILibraryService service,
     string isbn,
     BookEditionDTO newBookEditionInfo
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var response = await service.UpdateBookEdition(isbn, newBookEditionInfo);
+    var response = await service.UpdateBookEdition(isbn, newBookEditionInfo);
 
-      if (response.Result)
-        result = TypedResults.Ok(response.Message);
-      else
-        result = TypedResults.BadRequest(response.Message);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-
-    return result;
+    if (response.Result)
+      return TypedResults.Ok(response.Message);
+    return TypedResults.BadRequest(response.Message);
   }
 
   ///<summary>
   /// Update book instance data
   /// </summary>
   /// <remarks>
-  /// The only data of book instance which is changing is date of taking and returning 
+  /// The only data of book instance which is changing is date of taking and returning
   /// </remarks>
   private static async Task<IResult> UpdateBookInstance(
-    IMapper mapper,
     ILibraryService service,
     int id,
     BookInstanceDTO newBookInstance
   )
   {
-    IResult result = TypedResults.Ok();
-    try
-    {
-      var response = await service.UpdateBookInstance(id, newBookInstance);
+    var response = await service.UpdateBookInstance(id, newBookInstance);
 
-      if (response.Result)
-        result = TypedResults.Ok(response.Message);
-      else
-        result = TypedResults.BadRequest(response.Message);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-
-    return result;
+    if (response.Result)
+      return TypedResults.Ok(response.Message);
+    return TypedResults.BadRequest(response.Message);
   }
 
   ///<summary>
@@ -246,23 +151,11 @@ public static class LibraryAPI
   /// </summary>
   private static async Task<IResult> DeleteBookEdition(ILibraryService service, string isbn)
   {
-    IResult result = TypedResults.Ok();
+    var response = await service.DeleteBookEdition(isbn);
 
-    try
-    {
-      var response = await service.DeleteBookEdition(isbn);
-
-      if (response.Result)
-        result = TypedResults.NoContent();
-      else
-        result = TypedResults.NotFound(response.Message);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
-
-    return result;
+    if (response.Result)
+      return TypedResults.NoContent();
+    return TypedResults.NotFound(response.Message);
   }
 
   ///<summary>
@@ -270,22 +163,24 @@ public static class LibraryAPI
   /// </summary>
   private static async Task<IResult> DeleteBookInstance(ILibraryService service, int id)
   {
-    IResult result = TypedResults.Ok();
+    var response = await service.DeleteBookInstance(id);
 
-    try
-    {
-      var response = await service.DeleteBookInstance(id);
+    if (response.Result)
+      return TypedResults.NoContent();
+    
+    return TypedResults.NotFound(response.Message);
+  }
 
-      if (response.Result)
-        result = TypedResults.NoContent();
-      else
-        result = TypedResults.NotFound(response.Message);
-    }
-    catch (LibraryServiceException e)
-    {
-      result = TypedResults.BadRequest(e.Message);
-    }
+  ///<summary>
+  /// Get authentication token
+  ///</summary>
+  public static IResult GetToken(ITokenService tokenService, string? username)
+  {
+    var token = tokenService.GetTokenByUsername(username);
+    
+    if(String.IsNullOrEmpty(token))
+      return TypedResults.BadRequest("unable to create token, check input parameters");
 
-    return result;
+    return TypedResults.Text(token);
   }
 }
