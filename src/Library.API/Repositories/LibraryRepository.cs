@@ -141,40 +141,33 @@ public class LibraryRepository : ILibraryRepository
     return affectedRowsNumber != 0;
   }
 
+  ///<summary>
+  /// Parse through genres from object and compares them to correct context genres
+  ///</summary>
+  ///<returns>
+  /// List of correct genres from Context 
+  ///</returns>
   private List<Genre> FilterCorrectGenres(IList<Genre> genres)
   {
-    List<Genre> newGenres = new();
-    foreach (var item in context.Genres)
-    {
-      if (genres.Contains(item))
-        newGenres.Add(item);
-    }
-
-    var aboba = context.Genres.Where(g => genres.Contains(g));
-    foreach(var a in aboba)
-    {
-      logger.LogInformation($"GENRE {a.ToString().ToUpper()}");
-    }
-    return newGenres;
-    // var result = new List<Genre>();
-    // result.AddRange(context.Genres.Where(g => genres.Contains(g)));
-    // foreach(var r in result)
-    // {
-    //   logger.LogInformation(r.ToString().ToUpper());   
-    // }
-    // return result;
+    var names = genres.Select(g => g.Name);
+    return context.Genres.Where(g => names.Contains(g.Name)).ToList();
   }
-
+  
+  ///<summary>
+  /// Parse through authors from params and compare them to correct context authors
+  ///</summary>
+  ///<returns>
+  /// List of correct authors from Context 
+  ///</returns>
   private List<Author> FilterCorrectAuthors(IList<Author> authors)
   {
-    // List<Author> newAuthors = new();
-    // foreach (var item in context.Authors)
-    // {
-    //   if (authors.Contains(item))
-    //     newAuthors.Add(item);
-    // }
-    var result = new List<Author>();
-    result.AddRange(context.Authors.Where(a => authors.Contains(a)).Select(g => g));
-    return result;
+    List<Author> newAuthors = new();
+    //cycle better than LINQ because need to compare by 3 fields: FirstName, MiddleName, LastName
+    foreach (var item in context.Authors)
+    {
+      if (authors.Contains(item))
+        newAuthors.Add(item);
+    }
+    return newAuthors;
   }
 }
