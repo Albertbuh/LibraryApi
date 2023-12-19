@@ -223,17 +223,22 @@ public class LibraryService : ILibraryService
         false
       );
 
+    var response = new LibraryServiceResponse($"Book Edition has been updated", true);
+
     try
     {
       var newInfo = mapper.Map<BookEdition>(newInfoDTO);
-      await repository.UpdateBookEdition(isbn, newInfo);
+      bool isUpdated = await repository.UpdateBookEdition(isbn, newInfo);
+
+      if(!isUpdated)
+        response = new LibraryServiceResponse($"Book edition {isbn} not found, update impossible", false);
     }
     catch (Exception e)
     {
       logger.LogWarning(e.ToString());
       throw new LibraryServiceException(e.ToString(), e);
     }
-    return new LibraryServiceResponse($"Book Edition has been updated", true);
+    return response;
   }
 
   public async Task<LibraryServiceResponse> UpdateBookInstance(int id, BookInstanceDTO newInfoDTO)
