@@ -1,4 +1,4 @@
-// using Library.API.Services.Exceptions;
+using Library.API.Services.Exceptions;
 namespace Library.API.Middlewares;
 
 public class LibraryExceptionMiddleware
@@ -23,9 +23,23 @@ public class LibraryExceptionMiddleware
       logger.LogError(e, $"error in processing {context.Request.Path.Value}");
       var response = context.Response;
       response.ContentType = "text/html";
-      response.StatusCode = StatusCodes.Status400BadRequest;
+      response.StatusCode = GetStatusCode(e);
       await response.WriteAsync(e.Message);
     }
   }
 
+  private int GetStatusCode(Exception e)
+  {
+    int code;
+    switch(e)
+    {
+      case LibraryServiceException:
+        code = StatusCodes.Status500InternalServerError;
+        break;
+      default:
+        code = StatusCodes.Status400BadRequest;
+        break;
+    }
+    return code;
+  }
 }

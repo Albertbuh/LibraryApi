@@ -1,7 +1,8 @@
-using Library.API.Services.Exceptions;
-using Library.API.Repositories;
-using Library.API.Infrastructure;
 using AutoMapper;
+using Library.API.Infrastructure;
+using Library.API.Repositories;
+using Library.API.Services.Exceptions;
+
 // using Library.API.Repositories.Exceptions;
 
 namespace Library.API.Services;
@@ -43,7 +44,7 @@ public class LibraryService : ILibraryService
     try
     {
       var bookInstances = repository.GetAllBookInstances();
-      result =  mapper.Map<List<BookInstanceDTO>>(bookInstances);
+      result = mapper.Map<List<BookInstanceDTO>>(bookInstances);
     }
     catch (Exception e)
     {
@@ -89,7 +90,7 @@ public class LibraryService : ILibraryService
     catch (Exception e)
     {
       logger.LogWarning(e.ToString());
-      throw new LibraryServiceException(e.ToString(), e);
+      throw new LibraryServiceException($"Error in getting book by ISBN -> {isbn}", e);
     }
 
     return result;
@@ -107,33 +108,30 @@ public class LibraryService : ILibraryService
 
     try
     {
-      var edition = mapper.Map<BookEdition>(bookEditionDTO);
-      var isAdded = await repository.AddBookEdition(edition);
-
-      if (!isAdded)
+      var isEditionAlreadyCreated = await GetBookByISBN(bookEditionDTO.ISBN) != null;
+      if (!isEditionAlreadyCreated)
       {
-        response = new LibraryServiceResponse(
-          $"Unable to add book edition isbn -> {edition.ISBN}",
-          false
-        );
+        var edition = mapper.Map<BookEdition>(bookEditionDTO);
+        var isAdded = await repository.AddBookEdition(edition);
+
+        if (!isAdded)
+        {
+          response = new LibraryServiceResponse(
+            $"Unable to add book edition isbn -> {edition.ISBN}",
+            false
+          );
+        }
       }
+      else
+        response = new LibraryServiceResponse(
+            $"Book with such ISBN -> {bookEditionDTO.ISBN} already in database",
+            false
+            );
     }
     catch (Exception e)
     {
-      try
-      {
-        var bookEdition = GetBookByISBN(bookEditionDTO.ISBN);
-        if (bookEdition != null)
-          throw new LibraryServiceException(
-            $"Book with ISBN -> {bookEditionDTO.ISBN} is already in DB",
-            e
-          );
-      }
-      finally
-      {
-        logger.LogWarning(e.ToString());
-        throw new LibraryServiceException(e.ToString(), e);
-      }
+      logger.LogWarning(e.ToString());
+      throw new LibraryServiceException($"Error while adding book with {bookEditionDTO.ISBN}", e);
     }
     return response;
   }
@@ -142,24 +140,24 @@ public class LibraryService : ILibraryService
   {
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse("Invalid ISBN", false);
-    if(amount < 0 || amount > 100)
+    if (amount < 0 || amount > 100)
       return new LibraryServiceResponse("Incorrect amount. Amount is [1, 100]");
 
     var result = new LibraryServiceResponse(
       $"Added new book instances for {isbn} in {amount} copies",
       true
     );
-    
+
     var edition = await repository.GetBookByISBN(isbn);
     bool isAdded = false;
-    if(edition != null)
+    if (edition != null)
     {
       var instances = new BookInstance[amount];
-      for(int i = 0; i < amount; i++)
+      for (int i = 0; i < amount; i++)
         instances[i] = new BookInstance(edition);
-      
+
       isAdded = await repository.AddBookInstances(instances);
-      
+
       if (!isAdded)
       {
         result = new LibraryServiceResponse(
@@ -213,7 +211,10 @@ public class LibraryService : ILibraryService
     return new LibraryServiceResponse($"Successfull deletion of book instance with id {id}", true);
   }
 
-  public async Task<LibraryServiceResponse> UpdateBookEdition(string isbn, BookEditionDTO newInfoDTO)
+  public async Task<LibraryServiceResponse> UpdateBookEdition(
+    string isbn,
+    BookEditionDTO newInfoDTO
+  )
   {
     if (!IsISBNValid(isbn))
       return new LibraryServiceResponse($"Invalid ISBN {isbn}", false);
@@ -230,8 +231,11 @@ public class LibraryService : ILibraryService
       var newInfo = mapper.Map<BookEdition>(newInfoDTO);
       bool isUpdated = await repository.UpdateBookEdition(isbn, newInfo);
 
-      if(!isUpdated)
-        response = new LibraryServiceResponse($"Book edition {isbn} not found, update impossible", false);
+      if (!isUpdated)
+        response = new LibraryServiceResponse(
+          $"Book edition {isbn} not found, update impossible",
+          false
+        );
     }
     catch (Exception e)
     {

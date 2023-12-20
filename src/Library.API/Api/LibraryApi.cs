@@ -46,10 +46,7 @@ public static class LibraryAPI
   ///<summary>
   /// Get book instance using Id
   /// </summary>
-  private static async Task<IResult> GetBookInstanceById(
-    ILibraryService service,
-    int id
-  )
+  private static async Task<IResult> GetBookInstanceById(ILibraryService service, int id)
   {
     var bookInstance = await service.GetBookInstanceById(id);
 
@@ -62,10 +59,7 @@ public static class LibraryAPI
   ///<summary>
   /// Get book edition using ISBN
   /// </summary>
-  private static async Task<IResult> GetBookByISBN(
-    ILibraryService service,
-    string isbn
-  )
+  private static async Task<IResult> GetBookByISBN(ILibraryService service, string isbn)
   {
     var bookEdition = await service.GetBookByISBN(isbn);
 
@@ -105,7 +99,7 @@ public static class LibraryAPI
   {
     var response = await service.AddBookInstances(isbn, amount);
 
-    if (response.Result == false)
+    if (!response.Result)
       return TypedResults.BadRequest(response.Message);
 
     return TypedResults.Ok(response.Message);
@@ -122,9 +116,10 @@ public static class LibraryAPI
   {
     var response = await service.UpdateBookEdition(isbn, newBookEditionInfo);
 
-    if (response.Result)
-      return TypedResults.Ok(response.Message);
-    return TypedResults.BadRequest(response.Message);
+    if (!response.Result)
+      return TypedResults.BadRequest(response.Message);
+
+    return TypedResults.Ok(response.Message);
   }
 
   ///<summary>
@@ -141,9 +136,10 @@ public static class LibraryAPI
   {
     var response = await service.UpdateBookInstance(id, newBookInstance);
 
-    if (response.Result)
-      return TypedResults.Ok(response.Message);
-    return TypedResults.BadRequest(response.Message);
+    if (!response.Result)
+      return TypedResults.BadRequest(response.Message);
+
+    return TypedResults.Ok(response.Message);
   }
 
   ///<summary>
@@ -153,9 +149,10 @@ public static class LibraryAPI
   {
     var response = await service.DeleteBookEdition(isbn);
 
-    if (response.Result)
-      return TypedResults.NoContent();
-    return TypedResults.NotFound(response.Message);
+    if (!response.Result)
+      return TypedResults.NotFound(response.Message);
+
+    return TypedResults.NoContent();
   }
 
   ///<summary>
@@ -165,10 +162,10 @@ public static class LibraryAPI
   {
     var response = await service.DeleteBookInstance(id);
 
-    if (response.Result)
-      return TypedResults.NoContent();
-    
-    return TypedResults.NotFound(response.Message);
+    if (!response.Result)
+      return TypedResults.NotFound(response.Message);
+
+    return TypedResults.NoContent();
   }
 
   ///<summary>
@@ -177,8 +174,8 @@ public static class LibraryAPI
   public static IResult GetToken(ITokenService tokenService, string? username)
   {
     var token = tokenService.GetTokenByUsername(username);
-    
-    if(String.IsNullOrEmpty(token))
+
+    if (String.IsNullOrEmpty(token))
       return TypedResults.BadRequest("unable to create token, check input parameters");
 
     return TypedResults.Text(token);
